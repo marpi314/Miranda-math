@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herramienta Interactivo de Funciones Racionales</title>
+    <title>Explorador Combinado de Funciones Matematicas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: The SPA is designed as an interactive learning dashboard. Instead of following the static 5-session structure of the report, it provides a unified "explorer" experience. The core components are: 1) Parameter sliders (a, b, c, d) for hands-on manipulation. 2) A large, dynamic Chart.js graph that visualizes the function and its asymptotes in real-time. 3) A dynamic "Analysis Dashboard" that displays all key properties (asymptotes, domain, range, intercepts) calculated live. 4) A tabbed section for conceptual explanations, allowing students to delve into the "why" behind the calculations at their own pace. This structure transforms a passive lesson plan into an active, discovery-based learning tool, which is more effective for the target audience. -->
-    <!-- Visualization & Content Choices: Report Info: Function parameters, formulas, graphs, and application problems. Goal: Allow students to explore the relationship between parameters and graph properties. Viz/Presentation Method: Interactive sliders control a central Chart.js canvas graph. A dynamic HTML/CSS grid displays calculated properties. Tabbed content sections explain the theory. Interaction: Sliders update all visual and text elements in real-time. Tabs reveal contextual information. Justification: This approach provides immediate visual feedback, reinforcing learning. It separates the "what" (the graph and results) from the "how" (the explanations), reducing cognitive load and encouraging exploration. Library/Method: Chart.js for canvas-based graphing. All other elements are structured HTML with Tailwind CSS and manipulated with vanilla JavaScript. -->
+    <!-- Application Structure Plan: This SPA combines three interactive explorers (Quadratic, Rational, and Logarithmic Functions) into a single page using a main tabbed navigation. Each explorer retains its internal dashboard-like structure with parameter sliders, a dynamic Chart.js graph, an analysis panel, and conceptual tabs with AI-powered explanations/problems. This design provides a unified learning platform, allowing users to switch between function types easily while maintaining the interactive, discovery-based learning experience for each. The order of explorers is Quadratic, Rational, then Logarithmic. -->
+    <!-- Visualization & Content Choices: Main Navigation: HTML buttons with data-targets for tab switching. Goal: Easy navigation between function types. Justification: Clear and intuitive. Each Function Explorer: Reuses the Chart.js graph, HTML/Tailwind for sliders and analysis dashboard. Goal: Maintain established interactive learning patterns. Justification: Proven effective for visualization and parameter manipulation. LLM Integration: Buttons trigger fetch calls to Gemini API for all explorers. Goal: Provide context-sensitive explanations and problems. Justification: Enhances engagement and understanding for each function type. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -19,10 +19,19 @@
             background-color: #FDFBF8;
             color: #4A4A4A;
         }
-        .tab-button {
+        .main-tab-button {
             transition: all 0.3s ease;
         }
-        .tab-button.active {
+        .main-tab-button.active {
+            border-color: #F97316;
+            background-color: #FFF7ED;
+            color: #F97316;
+            font-weight: 700; /* Mas negrita para la pestana principal activa */
+        }
+        .sub-tab-button {
+            transition: all 0.3s ease;
+        }
+        .sub-tab-button.active {
             border-color: #F97316;
             background-color: #FFF7ED;
             color: #F97316;
@@ -50,548 +59,1345 @@
 <body class="antialiased">
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-orange-600">Explorador de Funciones Racionales</h1>
-            <p class="mt-2 text-lg text-gray-600">Una herramienta interactiva para visualizar f(x) = \frac{ax+b}{cx+d}$</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-orange-600">Explorador de Funciones Matematicas</h1>
+            <p class="mt-2 text-lg text-gray-600">Herramienta interactiva para explorar funciones cuadraticas, racionales y logaritmicas</p>
         </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
-                <div class="chart-container mx-auto">
-                    <canvas id="rationalFunctionChart"></canvas>
-                </div>
-            </div>
+        <!-- Main Navigation Tabs -->
+        <div class="border-b border-gray-200 mb-8">
+            <nav class="flex flex-wrap -mb-px justify-center" id="main-tabs">
+                <button data-target="quadratic-explorer" class="main-tab-button active text-xl py-4 px-8 border-b-2 font-medium">Funciones Cuadraticas</button>
+                <button data-target="rational-explorer" class="main-tab-button text-xl py-4 px-8 border-b-2 border-transparent">Funciones Racionales</button>
+                <button data-target="logarithmic-explorer" class="main-tab-button text-xl py-4 px-8 border-b-2 border-transparent">Funciones Logaritmicas</button>
+            </nav>
+        </div>
 
-            <aside class="lg:col-span-1 space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Parametros</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-4">
-                            <label for="paramA" class="slider-label font-medium text-gray-700">Parametro 'a':</label>
-                            <input type="range" id="paramA" min="-10" max="10" value="2" step="1" class="w-full">
-                            <span id="paramAValue" class="param-value font-mono text-orange-600">2</span>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <label for="paramB" class="slider-label font-medium text-gray-700">Parametro 'b':</label>
-                            <input type="range" id="paramB" min="-10" max="10" value="3" step="1" class="w-full">
-                            <span id="paramBValue" class="param-value font-mono text-orange-600">3</span>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <label for="paramC" class="slider-label font-medium text-gray-700">Parametro 'c':</label>
-                            <input type="range" id="paramC" min="-10" max="10" value="1" step="1" class="w-full">
-                            <span id="paramCValue" class="param-value font-mono text-orange-600">1</span>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <label for="paramD" class="slider-label font-medium text-gray-700">Parametro 'd':</label>
-                            <input type="range" id="paramD" min="-10" max="10" value="-4" step="1" class="w-full">
-                            <span id="paramDValue" class="param-value font-mono text-orange-600">-4</span>
-                        </div>
+        <!-- Quadratic Functions Explorer -->
+        <div id="quadratic-explorer" class="main-tab-pane">
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="chart-container mx-auto">
+                        <canvas id="quadraticFunctionChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Analisis de la Funcion</h2>
-                    <div id="analysis-dashboard" class="space-y-3 text-gray-700">
-                        <p><strong>Funcion:</strong> <span id="functionDisplay" class="font-mono text-blue-600"></span></p>
-                        <p><strong>Dominio:</strong> <span id="domainDisplay" class="font-mono text-blue-600"></span></p>
-                        <p><strong>Rango:</strong> <span id="rangeDisplay" class="font-mono text-blue-600"></span></p>
-                        <p><strong>Asintota Vertical:</strong> <span id="verticalAsymptoteDisplay" class="font-mono text-red-600"></span></p>
-                        <p><strong>Asintota Horizontal:</strong> <span id="horizontalAsymptoteDisplay" class="font-mono text-green-600"></span></p>
-                        <p><strong>Interseccion Eje Y:</strong> <span id="yInterceptDisplay" class="font-mono text-purple-600"></span></p>
-                        <p><strong>Interseccion Eje X:</strong> <span id="xInterceptDisplay" class="font-mono text-purple-600"></span></p>
-                        <div id="specialCase" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden"></div>
+                <aside class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Parametros (Cuadratica)</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <label for="paramAQ" class="slider-label font-medium text-gray-700">Parametro 'a':</label>
+                                <input type="range" id="paramAQ" min="-2" max="2" value="1" step="0.1" class="w-full">
+                                <span id="paramAQValue" class="param-value font-mono text-orange-600">1</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramBQ" class="slider-label font-medium text-gray-700">Parametro 'b':</label>
+                                <input type="range" id="paramBQ" min="-10" max="10" value="0" step="1" class="w-full">
+                                <span id="paramBQValue" class="param-value font-mono text-orange-600">0</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramCQ" class="slider-label font-medium text-gray-700">Parametro 'c':</label>
+                                <input type="range" id="paramCQ" min="-10" max="10" value="0" step="1" class="w-full">
+                                <span id="paramCQValue" class="param-value font-mono text-orange-600">0</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </aside>
-        </main>
 
-        <section class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
-            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave</h2>
-            <div class="border-b border-gray-200">
-                <nav class="flex flex-wrap -mb-px justify-center" id="tabs">
-                    <button data-target="tab-asymptotes" class="tab-button active text-lg py-4 px-6 border-b-2 font-medium">Asintotas</button>
-                    <button data-target="tab-domain-range" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Dominio y Rango</button>
-                    <button data-target="tab-intercepts" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Intersecciones</button>
-                    <button data-target="tab-application" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicacion Real</button>
-                </nav>
-            </div>
-            <div id="tab-content" class="pt-6">
-                <div id="tab-asymptotes" class="tab-pane space-y-4">
-                    <p>Las asintotas son lineas a las que la grafica de la funcion se acerca indefinidamente pero nunca las cruza (en este tipo de funcion).</p>
-                    <div>
-                        <h3 class="text-xl font-semibold text-red-600">Asintota Vertical</h3>
-                        <p>Ocurre donde el denominador es igual a cero, ya que la division por cero no esta definida. Para encontrarla, resolvemos la ecuacion $cx + d = 0$.</p>
-                        <p class="p-3 bg-red-50 rounded-md mt-2">Calculo: <span id="va-calc" class="font-mono"></span></p>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Analisis de la Funcion (Cuadratica)</h2>
+                        <div id="analysis-dashboard-quadratic" class="space-y-3 text-gray-700">
+                            <p><strong>Funcion:</strong> <span id="functionDisplayQ" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Direccion:</strong> <span id="directionDisplayQ" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Vertice:</strong> <span id="vertexDisplayQ" class="font-mono text-red-600"></span></p>
+                            <p><strong>Eje de Simetria:</strong> <span id="axisOfSymmetryDisplayQ" class="font-mono text-green-600"></span></p>
+                            <p><strong>Raices (x-int):</strong> <span id="rootsDisplayQ" class="font-mono text-purple-600"></span></p>
+                            <p><strong>Interseccion Eje Y:</strong> <span id="yInterceptDisplayQ" class="font-mono text-purple-600"></span></p>
+                            <p><strong>Dominio:</strong> <span id="domainDisplayQ" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Rango:</strong> <span id="rangeDisplayQ" class="font-mono text-blue-600"></span></p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-green-600">Asintota Horizontal</h3>
-                        <p>Describe el comportamiento de la funcion cuando x se vuelve muy grande (positivo o negativo). Se encuentra dividiendo los coeficientes de $x$ del numerador y denominador.</p>
-                        <p class="p-3 bg-green-50 rounded-md mt-2">Calculo: <span id="ha-calc" class="font-mono"></span></p>
-                    </div>
-                    <button id="simplifyAsymptotes" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Explicacion Simplificada</button>
-                    <div id="simplifiedExplanationOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                </aside>
+            </main>
+
+            <section class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave (Cuadratica)</h2>
+                <div class="border-b border-gray-200">
+                    <nav class="flex flex-wrap -mb-px justify-center" id="sub-tabs-quadratic">
+                        <button data-target="tab-properties-quadratic" class="sub-tab-button active text-lg py-4 px-6 border-b-2 font-medium">Propiedades</button>
+                        <button data-target="tab-application-quadratic" class="sub-tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicacion Real</button>
+                    </nav>
                 </div>
-                <div id="tab-domain-range" class="tab-pane hidden space-y-4">
-                    <div>
-                        <h3 class="text-xl font-semibold text-blue-600">Dominio</h3>
-                        <p>El dominio es el conjunto de todos los valores de x para los cuales la funcion esta definida. En una funcion racional, esto incluye todos los numeros reales excepto el valor de $x$ que corresponde a la asintota vertical.</p>
-                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="domain-exclusion" class="font-mono"></span></p>
+                <div id="sub-tab-content-quadratic" class="pt-6">
+                    <div id="tab-properties-quadratic" class="sub-tab-pane space-y-4">
+                        <p>Las funciones cuadraticas forman parabolas y tienen propiedades clave que definen su forma y posicion.</p>
+                        <div>
+                            <h3 class="text-xl font-semibold text-red-600">Vertice y Eje de Simetria</h3>
+                            <p>El vertice es el punto mas alto o mas bajo de la parabola. El eje de simetria es una linea vertical que divide la parabola en dos mitades simetricas y pasa por el vertice.</p>
+                            <p class="p-3 bg-red-50 rounded-md mt-2">Calculo del vertice: $x = -b / (2a)$, luego sustituir $x$ en la funcion para obtener $y$.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-purple-600">Raices (Intersecciones con Eje X)</h3>
+                            <p>Las raices es el valor de la coordenada x del punto de corte del grafico con el eje x. Se encuentran resolviendo la ecuacion $ax^2 + bx + c = 0$ (usando la formula cuadratica).</p>
+                            <div class="p-3 bg-purple-50 rounded-md mt-2 text-center">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Quadratic_formula.svg/300px-Quadratic_formula.svg.png" alt="" class="mx-auto" onerror="this.onerror=null; this.src='https://placehold.co/300x50/F97316/FFFFFF?text=Error+Carga+Imagen';" style="max-width: 100%; height: auto;">
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-blue-600">Dominio y Rango</h3>
+                            <p>El dominio de cualquier funcion cuadratica es siempre todos los numeros reales. El rango depende de la direccion de apertura y la coordenada Y del vertice.</p>
+                        </div>
+                        <button id="simplifyPropertiesQ" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Explicacion Simplificada</button>
+                        <div id="simplifiedExplanationOutputQ" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-blue-600">Rango</h3>
-                        <p>El rango es el conjunto de todos los valores posibles de y. Para esta forma de funcion racional, incluye todos los numeros reales excepto el valor de $y$ que corresponde a la asintota horizontal.</p>
-                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="range-exclusion" class="font-mono"></span></p>
+                    <div id="tab-application-quadratic" class="sub-tab-pane hidden space-y-4">
+                        <h3 class="text-xl font-semibold">Ejemplo: Trayectoria de un Objeto</h3>
+                        <p>La altura $h$ de un balon lanzado hacia arriba puede modelarse con una funcion cuadratica: $h(t) = -5t^2 + 20t + 1.5$, donde $t$ es el tiempo en segundos.</p>
+                        <p>El vertice de esta funcion representaria la altura maxima que alcanza el balon y el tiempo en que lo hace. Las raices indicarian cuando el balon toca el suelo.</p>
+                        <button id="generateProblemQ" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Generar Problema</button>
+                        <div id="generatedProblemOutputQ" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
                     </div>
                 </div>
-                <div id="tab-intercepts" class="tab-pane hidden space-y-4">
-                     <div>
-                        <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje Y</h3>
-                        <p>Es el punto donde la grafica cruza el eje vertical. Se encuentra evaluando la funcion en x=0.</p>
-                        <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="y-int-calc" class="font-mono"></span></p>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje X (Raiz)</h3>
-                        <p>Es el punto donde la grafica cruza el eje horizontal. Se encuentra igualando el numerador a cero y resolviendo para $x$, ya que una fraccion es cero solo si su numerador es cero.</p>
-                        <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="x-int-calc" class="font-mono"></span></p>
+            </section>
+        </div>
+
+        <!-- Rational Functions Explorer -->
+        <div id="rational-explorer" class="main-tab-pane hidden">
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="chart-container mx-auto">
+                        <canvas id="rationalFunctionChart"></canvas>
                     </div>
                 </div>
-                <div id="tab-application" class="tab-pane hidden space-y-4">
-                    <h3 class="text-xl font-semibold">Ejemplo: Costo Promedio de Produccion</h3>
-                    <p>Imagina una fabrica con un costo fijo de $1000 (b) y un costo de produccion por unidad de $5 (a). La funcion de costo promedio por unidad $x$ (donde $c=1, d=0$) seria:</p>
-                    <p class="text-center text-2xl my-4 font-mono">C(x) = 5x + 1000/x</p>
-                    <p>La <strong>asintota horizontal</strong> de esta funcion es $y = 5/1 = 5$.</p>
-                    <p><strong>Interpretacion:</strong> A medida que la fabrica produce mas y mas unidades (cuando $x$ tiende a infinito), el costo fijo de $1000 se distribuye entre tantas unidades que su impacto se vuelve insignificante. El costo promedio por unidad se acerca cada vez mas al costo de produccion por unidad, que es $5. Nunca sera exactamente $5, pero se aproxima a ese valor. La asintota horizontal representa este limite o "costo minimo teorico a largo plazo".</p>
-                    <button id="generateProblem" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Generar Problema</button>
-                    <div id="generatedProblemOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+
+                <aside class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Parametros (Racional)</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <label for="paramAR" class="slider-label font-medium text-gray-700">Parametro 'a':</label>
+                                <input type="range" id="paramAR" min="-10" max="10" value="2" step="1" class="w-full">
+                                <span id="paramARValue" class="param-value font-mono text-orange-600">2</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramBR" class="slider-label font-medium text-gray-700">Parametro 'b':</label>
+                                <input type="range" id="paramBR" min="-10" max="10" value="3" step="1" class="w-full">
+                                <span id="paramBRValue" class="param-value font-mono text-orange-600">3</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramCR" class="slider-label font-medium text-gray-700">Parametro 'c':</label>
+                                <input type="range" id="paramCR" min="-10" max="10" value="1" step="1" class="w-full">
+                                <span id="paramCRValue" class="param-value font-mono text-orange-600">1</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramDR" class="slider-label font-medium text-gray-700">Parametro 'd':</label>
+                                <input type="range" id="paramDR" min="-10" max="10" value="-4" step="1" class="w-full">
+                                <span id="paramDRValue" class="param-value font-mono text-orange-600">-4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Analisis de la Funcion (Racional)</h2>
+                        <div id="analysis-dashboard-rational" class="space-y-3 text-gray-700">
+                            <p><strong>Funcion:</strong> <span id="functionDisplayR" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Dominio:</strong> <span id="domainDisplayR" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Rango:</strong> <span id="rangeDisplayR" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Asintota Vertical:</strong> <span id="verticalAsymptoteDisplayR" class="font-mono text-red-600"></span></p>
+                            <p><strong>Asintota Horizontal:</strong> <span id="horizontalAsymptoteDisplayR" class="font-mono text-green-600"></span></p>
+                            <p><strong>Interseccion Eje Y:</strong> <span id="yInterceptDisplayR" class="font-mono text-purple-600"></span></p>
+                            <p><strong>Interseccion Eje X:</strong> <span id="xInterceptDisplayR" class="font-mono text-purple-600"></span></p>
+                            <div id="specialCaseR" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden"></div>
+                        </div>
+                    </div>
+                </aside>
+            </main>
+
+            <section class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave (Racional)</h2>
+                <div class="border-b border-gray-200">
+                    <nav class="flex flex-wrap -mb-px justify-center" id="sub-tabs-rational">
+                        <button data-target="tab-asymptotes-rational" class="sub-tab-button active text-lg py-4 px-6 border-b-2 font-medium">Asintotas</button>
+                        <button data-target="tab-domain-range-rational" class="sub-tab-button text-lg py-4 px-6 border-b-2 border-transparent">Dominio y Rango</button>
+                        <button data-target="tab-intercepts-rational" class="sub-tab-button text-lg py-4 px-6 border-b-2 border-transparent">Intersecciones</button>
+                        <button data-target="tab-application-rational" class="sub-tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicacion Real</button>
+                    </nav>
                 </div>
-            </div>
-        </section>
+                <div id="sub-tab-content-rational" class="pt-6">
+                    <div id="tab-asymptotes-rational" class="sub-tab-pane space-y-4">
+                        <p>Las asintotas son lineas a las que la grafica de la funcion se acerca indefinidamente pero nunca las cruza (en este tipo de funcion).</p>
+                        <div>
+                            <h3 class="text-xl font-semibold text-red-600">Asintota Vertical</h3>
+                            <p>Ocurre donde el denominador es igual a cero, ya que la division por cero no esta definida. Para encontrarla, resolvemos la ecuacion $cx + d = 0$.</p>
+                            <p class="p-3 bg-red-50 rounded-md mt-2">Calculo: <span id="va-calcR" class="font-mono"></span></p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-green-600">Asintota Horizontal</h3>
+                            <p>Describe el comportamiento de la funcion cuando x se vuelve muy grande (positivo o negativo). Se encuentra dividiendo los coeficientes de $x$ del numerador y denominador.</p>
+                            <p class="p-3 bg-green-50 rounded-md mt-2">Calculo: <span id="ha-calcR" class="font-mono"></span></p>
+                        </div>
+                        <button id="simplifyAsymptotesR" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Explicacion Simplificada</button>
+                        <div id="simplifiedExplanationOutputR" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                    </div>
+                    <div id="tab-domain-range-rational" class="sub-tab-pane hidden space-y-4">
+                        <div>
+                            <h3 class="text-xl font-semibold text-blue-600">Dominio</h3>
+                            <p>El dominio es el conjunto de todos los valores de x para los cuales la funcion esta definida. En una funcion racional, esto incluye todos los numeros reales excepto el valor de $x$ que corresponde a la asintota vertical.</p>
+                            <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="domain-exclusionR" class="font-mono"></span></p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-blue-600">Rango</h3>
+                            <p>El rango es el conjunto de todos los valores posibles de y. Para esta forma de funcion racional, incluye todos los numeros reales excepto el valor de $y$ que corresponde a la asintota horizontal.</p>
+                            <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="range-exclusionR" class="font-mono"></span></p>
+                        </div>
+                    </div>
+                    <div id="tab-intercepts-rational" class="sub-tab-pane hidden space-y-4">
+                         <div>
+                            <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje Y</h3>
+                            <p>Es el punto donde la grafica cruza el eje vertical. Se encuentra evaluando la funcion en x=0.</p>
+                            <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="y-int-calcR" class="font-mono"></span></p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje X (Raiz)</h3>
+                            <p>Es el punto donde la grafica cruza el eje horizontal. Se encuentra igualando el numerador a cero y resolviendo para $x$, ya que una fraccion es cero solo si su numerador es cero.</p>
+                            <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="x-int-calcR" class="font-mono"></span></p>
+                        </div>
+                    </div>
+                    <div id="tab-application-rational" class="sub-tab-pane hidden space-y-4">
+                        <h3 class="text-xl font-semibold">Ejemplo: Costo Promedio de Produccion</h3>
+                        <p>Imagina una fabrica con un costo fijo de $1000 (b) y un costo de produccion por unidad de $5 (a). La funcion de costo promedio por unidad $x$ (donde $c=1, d=0$) seria:</p>
+                        <p class="text-center text-2xl my-4 font-mono">C(x) = 5x + 1000/x</p>
+                        <p>La <strong>asintota horizontal</strong> de esta funcion es $y = 5/1 = 5$.</p>
+                        <p><strong>Interpretacion:</strong> A medida que la fabrica produce mas y mas unidades (cuando $x$ tiende a infinito), el costo fijo de $1000 se distribuye entre tantas unidades que su impacto se vuelve insignificante. El costo promedio por unidad se acerca cada vez mas al costo de produccion por unidad, que es $5. Nunca sera exactamente $5, pero se aproxima a ese valor. La asintota horizontal representa este limite o "costo minimo teorico a largo plazo".</p>
+                        <button id="generateProblemR" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Generar Problema</button>
+                        <div id="generatedProblemOutputR" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Logarithmic Functions Explorer -->
+        <div id="logarithmic-explorer" class="main-tab-pane hidden">
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                    <div class="chart-container mx-auto">
+                        <canvas id="logarithmicFunctionChart"></canvas>
+                    </div>
+                </div>
+
+                <aside class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Parametros (Logaritmica)</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <label for="paramBL" class="slider-label font-medium text-gray-700">Base 'b':</label>
+                                <input type="range" id="paramBL" min="0.1" max="10" value="2" step="0.1" class="w-full">
+                                <span id="paramBLValue" class="param-value font-mono text-orange-600">2</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramHL" class="slider-label font-medium text-gray-700">Desplazamiento 'h':</label>
+                                <input type="range" id="paramHL" min="-5" max="5" value="0" step="0.1" class="w-full">
+                                <span id="paramHLValue" class="param-value font-mono text-orange-600">0</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label for="paramKL" class="slider-label font-medium text-gray-700">Desplazamiento 'k':</label>
+                                <input type="range" id="paramKL" min="-10" max="10" value="0" step="1" class="w-full">
+                                <span id="paramKLValue" class="param-value font-mono text-orange-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Analisis de la Funcion (Logaritmica)</h2>
+                        <div id="analysis-dashboard-logarithmic" class="space-y-3 text-gray-700">
+                            <p><strong>Funcion:</strong> <span id="functionDisplayL" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Dominio:</strong> <span id="domainDisplayL" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Rango:</strong> <span id="rangeDisplayL" class="font-mono text-blue-600"></span></p>
+                            <p><strong>Asintota Vertical:</strong> <span id="verticalAsymptoteDisplayL" class="font-mono text-red-600"></span></p>
+                            <p><strong>Interseccion Eje X:</strong> <span id="xInterceptDisplayL" class="font-mono text-purple-600"></span></p>
+                            <p><strong>Interseccion Eje Y:</strong> <span id="yInterceptDisplayL" class="font-mono text-purple-600"></span></p>
+                            <div id="specialCaseL" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden"></div>
+                        </div>
+                    </div>
+                </aside>
+            </main>
+
+            <section class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave (Logaritmica)</h2>
+                <div class="border-b border-gray-200">
+                    <nav class="flex flex-wrap -mb-px justify-center" id="sub-tabs-logarithmic">
+                        <button data-target="tab-properties-logarithmic" class="sub-tab-button active text-lg py-4 px-6 border-b-2 font-medium">Propiedades</button>
+                        <button data-target="tab-application-logarithmic" class="sub-tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicacion Real</button>
+                    </nav>
+                </div>
+                <div id="sub-tab-content-logarithmic" class="pt-6">
+                    <div id="tab-properties-logarithmic" class="sub-tab-pane space-y-4">
+                        <p>Las funciones logaritmicas son inversas a las exponenciales y tienen propiedades unicas.</p>
+                        <div>
+                            <h3 class="text-xl font-semibold text-red-600">Asintota Vertical</h3>
+                            <p>La asintota vertical de una funcion logaritmica se encuentra donde el argumento del logaritmo es igual a cero. Para $f(x) = \log_b(x - h) + k$, la asintota vertical es $x = h$.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-blue-600">Dominio y Rango</h3>
+                            <p>El dominio de una funcion logaritmica esta restringido a valores donde el argumento del logaritmo es mayor que cero. El rango es siempre todos los numeros reales.</p>
+                            <p class="p-3 bg-blue-50 rounded-md mt-2">Dominio:son los x que cumplen  $(x - h) > 0$ o sea que $x > h$. </p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-purple-600">Intersecciones con los Ejes</h3>
+                            <p>La interseccion con el eje X (raiz) se encuentra igualando $f(x)=0$. La interseccion con el eje Y se encuentra evaluando $f(0)$, si $0$ esta en el dominio.</p>
+                        </div>
+                        <button id="simplifyPropertiesL" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Explicacion Simplificada</button>
+                        <div id="simplifiedExplanationOutputL" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                    </div>
+                    <div id="tab-application-logarithmic" class="sub-tab-pane hidden space-y-4">
+                        <h3 class="text-xl font-semibold">Ejemplo: Escala de Richter</h3>
+                        <p>La magnitud de un terremoto en la escala de Richter es una funcion logaritmica de la amplitud de las ondas sismicas. Por ejemplo, $M = \log_{10}(A/A_0)$, donde $A$ es la amplitud de las ondas y $A_0$ es una amplitud de referencia.</p>
+                        <p>Las funciones logaritmicas se usan para modelar fenomenos que crecen o decrecen muy rapidamente al principio y luego se estabilizan, o para representar escalas muy amplias (como sonido, acidez, etc.).</p>
+                        <button id="generateProblemL" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">✨ Generar Problema</button>
+                        <div id="generatedProblemOutputL" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const ctx = document.getElementById('rationalFunctionChart').getContext('2d');
-            let chart;
-
-            const params = {
-                a: document.getElementById('paramA'),
-                b: document.getElementById('paramB'),
-                c: document.getElementById('paramC'),
-                d: document.getElementById('paramD'),
-            };
-
-            const values = {
-                a: document.getElementById('paramAValue'),
-                b: document.getElementById('paramBValue'),
-                c: document.getElementById('paramCValue'),
-                d: document.getElementById('paramDValue'),
-            };
-
-            const displays = {
-                function: document.getElementById('functionDisplay'),
-                domain: document.getElementById('domainDisplay'),
-                range: document.getElementById('rangeDisplay'),
-                verticalAsymptote: document.getElementById('verticalAsymptoteDisplay'),
-                horizontalAsymptote: document.getElementById('horizontalAsymptoteDisplay'),
-                yIntercept: document.getElementById('yInterceptDisplay'),
-                xIntercept: document.getElementById('xInterceptDisplay'),
-                specialCase: document.getElementById('specialCase'),
-            };
-            
-            const calcs = {
-                va: document.getElementById('va-calc'),
-                ha: document.getElementById('ha-calc'),
-                domainExclusion: document.getElementById('domain-exclusion'),
-                rangeExclusion: document.getElementById('range-exclusion'),
-                yInt: document.getElementById('y-int-calc'),
-                xInt: document.getElementById('x-int-calc'),
-            };
-
-            const simplifyAsymptotesBtn = document.getElementById('simplifyAsymptotes');
-            const simplifiedExplanationOutput = document.getElementById('simplifiedExplanationOutput');
-            const generateProblemBtn = document.getElementById('generateProblem');
-            const generatedProblemOutput = document.getElementById('generatedProblemOutput');
-
+            // --- General Utility Functions ---
             function formatNumber(num) {
                 if (Number.isInteger(num)) return num.toString();
                 return num.toFixed(2).replace(/\.00$/, '');
             }
             
-            // CORRECTED: Formatea el signo para la visualizacion de la funcion
             function formatSign(num) {
                 if (num === 0) {
-                    return ''; // No se muestra signo ni numero si es cero
+                    return '';
                 } else if (num > 0) {
-                    return `+ ${num}`; // Numeros positivos con signo +
-                } else { // num < 0
-                    return `- ${Math.abs(num)}`; // Numeros negativos con signo - y su valor absoluto
-                }
-            }
-
-            function updateApplication() {
-                const a = parseFloat(params.a.value);
-                const b = parseFloat(params.b.value);
-                const c = parseFloat(params.c.value);
-                const d = parseFloat(params.d.value);
-
-                values.a.textContent = a;
-                values.b.textContent = b;
-                values.c.textContent = c;
-                values.d.textContent = d;
-
-                displays.specialCase.classList.add('hidden');
-                
-                // Asegurarse de que el primer termino del numerador y denominador no tenga un '+' si es positivo
-                let numeratorStr = `${a}x`;
-                if (b !== 0) {
-                    numeratorStr += ` ${formatSign(b)}`;
-                }
-
-                let denominatorStr = `${c}x`;
-                if (d !== 0) {
-                    denominatorStr += ` ${formatSign(d)}`;
-                }
-
-                // Manejar el caso donde el coeficiente de x es 0 en el numerador o denominador
-                if (a === 0 && b === 0) numeratorStr = '0';
-                else if (a === 0) numeratorStr = `${b}`;
-                
-                if (c === 0 && d === 0) denominatorStr = '0';
-                else if (c === 0) denominatorStr = `${d}`;
-
-                // Si 'a' es 0 y 'b' es positivo, no queremos '+ b'. Queremos 'b'.
-                if (a === 0 && b > 0) numeratorStr = `${b}`;
-                // Si 'a' es 0 y 'b' es negativo, queremos '-|b|'.
-                if (a === 0 && b < 0) numeratorStr = `-${Math.abs(b)}`;
-
-                // Si 'c' es 0 y 'd' es positivo, no queremos '+ d'. Queremos 'd'.
-                if (c === 0 && d > 0) denominatorStr = `${d}`;
-                // Si 'c' es 0 y 'd' es negativo, queremos '-|d|'.
-                if (c === 0 && d < 0) denominatorStr = `-${Math.abs(d)}`;
-
-                let functionStr = `f(x) = (${numeratorStr}) / (${denominatorStr})`;
-                displays.function.textContent = functionStr;
-
-                if (c === 0) {
-                    handleLinearCase(a, b, d);
-                    return;
-                }
-                
-                handleRationalCase(a,b,c,d);
-            }
-            
-            function handleLinearCase(a, b, d) {
-                if (d === 0) {
-                    displays.specialCase.textContent = "Caso Indefinido: c=0 y d=0. El denominador es cero para todo x.";
-                    displays.specialCase.classList.remove('hidden');
-                    clearDisplays();
-                    updateChart([], [], null, null);
-                    return;
-                }
-                
-                let linearTerm = '';
-                if (a !== 0) {
-                    linearTerm = `(${formatNumber(a/d)})x`;
-                }
-                let constantTerm = '';
-                if (b !== 0) {
-                    constantTerm = formatSign(b/d); // Usa formatSign para el signo
-                } else if (a === 0) { // If a is 0 and b is 0, it's just 0
-                    constantTerm = '0';
-                }
-
-                displays.specialCase.textContent = `Con c=0, la funcion es lineal: f(x) = ${linearTerm}${constantTerm}`;
-                displays.specialCase.classList.remove('hidden');
-                
-                displays.domain.textContent = 'x ∈ ℝ';
-                displays.range.textContent = 'y ∈ ℝ';
-                displays.verticalAsymptote.textContent = 'No tiene';
-                displays.horizontalAsymptote.textContent = 'No tiene';
-                
-                const yInt = b / d;
-                displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
-                
-                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b≠0)';
-                displays.xIntercept.textContent = a === 0 ? xInt : `(${formatNumber(xInt)}, 0)`;
-                
-                calcs.va.textContent = 'No aplica (c=0).';
-                calcs.ha.textContent = 'No aplica (c=0).';
-                calcs.domainExclusion.textContent = 'No hay exclusiones.';
-                calcs.rangeExclusion.textContent = 'No hay exclusiones.';
-                calcs.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${d} ) = ${formatNumber(yInt)}`;
-                calcs.xInt.textContent = a !== 0 ? `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}` : 'El numerador nunca es cero.';
-
-                const linearData = [];
-                for (let x = -20; x <= 20; x += 0.5) {
-                    linearData.push({x: x, y: (a * x + b) / d});
-                }
-                updateChart(linearData, [], null, null);
-            }
-
-            function handleRationalCase(a, b, c, d) {
-                const va = -d / c;
-                const ha = a / c;
-
-                displays.domain.textContent = `x ∈ ℝ, x ≠ ${formatNumber(va)}`;
-                displays.range.textContent = `y ∈ ℝ, y ≠ ${formatNumber(ha)}`;
-                displays.verticalAsymptote.textContent = `x = ${formatNumber(va)}`;
-                displays.horizontalAsymptote.textContent = `y = ${formatNumber(ha)}`;
-                
-                calcs.va.textContent = `${c}x ${formatSign(d)} = 0  =>  x = ${formatNumber(va)}`;
-                calcs.ha.textContent = `y = a/c = ${a}/${c} = ${formatNumber(ha)}`;
-                calcs.domainExclusion.textContent = `El valor x = ${formatNumber(va)} esta excluido.`;
-                calcs.rangeExclusion.textContent = `El valor y = ${formatNumber(ha)} esta excluido.`;
-
-                const yInt = b / d;
-                if (d !== 0) {
-                    displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
-                    calcs.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${c}(0) ${formatSign(d)} ) = ${formatNumber(yInt)}`;
+                    return `+ ${num}`;
                 } else {
-                    displays.yIntercept.textContent = 'No tiene (en la asintota)';
-                    calcs.yInt.textContent = 'x=0 es la asintota vertical.';
+                    return `- ${Math.abs(num)}`;
                 }
-
-                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b≠0)';
-                if (a !== 0) {
-                    displays.xIntercept.textContent = `(${formatNumber(xInt)}, 0)`;
-                    calcs.xInt.textContent = `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}`;
-                } else {
-                    displays.xIntercept.textContent = 'No tiene (si a=0, b≠0)';
-                    calcs.xInt.textContent = 'El numerador nunca es cero (a=0 y b≠0).';
-                }
-
-                const data1 = [];
-                const data2 = [];
-                // Generate data points for a wider range to ensure the curve is visible even with a smaller chart scale
-                const plotRange = 20; 
-                const step = 0.1;
-
-                for (let x = va - plotRange; x < va; x += step) {
-                    data1.push({ x: x, y: (a * x + b) / (c * x + d) });
-                }
-                for (let x = va + step; x < va + plotRange; x += step) {
-                    data2.push({ x: x, y: (a * x + b) / (c * x + d) });
-                }
-                updateChart(data1, data2, va, ha);
             }
 
-            function clearDisplays() {
-                Object.values(displays).forEach(el => { if(el.id !== 'specialCase') el.textContent = 'N/A'; });
-                Object.values(calcs).forEach(el => el.textContent = 'No aplicable.');
+            // --- Chart Management for all explorers ---
+            let currentChartQ = null; // Quadratic Chart instance
+            let currentChartR = null; // Rational Chart instance
+            let currentChartL = null; // Logarithmic Chart instance
+
+            function destroyAllCharts() {
+                if (currentChartQ) {
+                    currentChartQ.destroy();
+                    currentChartQ = null;
+                }
+                if (currentChartR) {
+                    currentChartR.destroy();
+                    currentChartR = null;
+                }
+                if (currentChartL) {
+                    currentChartL.destroy();
+                    currentChartL = null;
+                }
             }
 
-            function updateChart(data1, data2, va, ha) {
-                const datasets = [
-                    {
-                        label: 'f(x)',
-                        data: data1,
-                        borderColor: '#F97316',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        pointRadius: 0,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'f(x)',
-                        data: data2,
-                        borderColor: '#F97316',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        pointRadius: 0,
-                        tension: 0.1
+            // --- Main Tab Navigation Logic ---
+            const mainTabs = document.getElementById('main-tabs');
+            const mainTabPanes = document.querySelectorAll('.main-tab-pane');
+
+            function switchMainTab(targetId) {
+                mainTabPanes.forEach(pane => pane.classList.add('hidden'));
+                document.getElementById(targetId).classList.remove('hidden');
+
+                destroyAllCharts(); // Destroy all charts before initializing the new one
+
+                // Re-initialize the active chart and its sub-tabs
+                if (targetId === 'quadratic-explorer') {
+                    initializeQuadraticExplorer();
+                } else if (targetId === 'rational-explorer') {
+                    initializeRationalExplorer();
+                } else if (targetId === 'logarithmic-explorer') {
+                    initializeLogarithmicExplorer();
+                }
+            }
+
+            mainTabs.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    mainTabs.querySelector('.main-tab-button.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    switchMainTab(e.target.dataset.target);
+                }
+            });
+
+            // --- Sub-Tab Navigation Logic (Generic for all explorers) ---
+            function setupSubTabs(tabNavId, tabContentId) {
+                const subTabs = document.getElementById(tabNavId);
+                const subTabPanes = document.querySelectorAll(`#${tabContentId} .sub-tab-pane`);
+                subTabs.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON') {
+                        subTabs.querySelector('.sub-tab-button.active').classList.remove('active');
+                        e.target.classList.add('active');
+                        
+                        subTabPanes.forEach(pane => pane.classList.add('hidden'));
+                        document.getElementById(e.target.dataset.target).classList.remove('hidden');
                     }
-                ];
+                });
+            }
 
-                if (va !== null) {
-                    datasets.push({
-                        label: 'Asintota Vertical',
-                        data: [{x: va, y: -1000}, {x: va, y: 1000}],
-                        borderColor: '#DC2626',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false
-                    });
-                }
-                if (ha !== null) {
-                     datasets.push({
-                        label: 'Asintota Horizontal',
-                        data: [{x: -1000, y: ha}, {x: 1000, y: ha}],
-                        borderColor: '#16A34A',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false
-                    });
+            // --- Quadratic Functions Explorer Logic ---
+            function initializeQuadraticExplorer() {
+                const ctxQ = document.getElementById('quadraticFunctionChart').getContext('2d');
+                
+                const paramsQ = {
+                    a: document.getElementById('paramAQ'),
+                    b: document.getElementById('paramBQ'),
+                    c: document.getElementById('paramCQ'),
+                };
+
+                const valuesQ = {
+                    a: document.getElementById('paramAQValue'),
+                    b: document.getElementById('paramBQValue'),
+                    c: document.getElementById('paramCQValue'),
+                };
+
+                const displaysQ = {
+                    function: document.getElementById('functionDisplayQ'),
+                    direction: document.getElementById('directionDisplayQ'),
+                    vertex: document.getElementById('vertexDisplayQ'),
+                    axisOfSymmetry: document.getElementById('axisOfSymmetryDisplayQ'),
+                    roots: document.getElementById('rootsDisplayQ'),
+                    yIntercept: document.getElementById('yInterceptDisplayQ'),
+                    domain: document.getElementById('domainDisplayQ'),
+                    range: document.getElementById('rangeDisplayQ'),
+                };
+                
+                const simplifyPropertiesBtnQ = document.getElementById('simplifyPropertiesQ');
+                const simplifiedExplanationOutputQ = document.getElementById('simplifiedExplanationOutputQ');
+                const generateProblemBtnQ = document.getElementById('generateProblemQ');
+                const generatedProblemOutputQ = document.getElementById('generatedProblemOutputQ');
+
+                function updateQuadraticApplication() {
+                    const a = parseFloat(paramsQ.a.value);
+                    const b = parseFloat(paramsQ.b.value);
+                    const c = parseFloat(paramsQ.c.value);
+
+                    valuesQ.a.textContent = a;
+                    valuesQ.b.textContent = b;
+                    valuesQ.c.textContent = c;
+
+                    let functionStr = `${a}x²`;
+                    if (b !== 0) {
+                        functionStr += ` ${formatSign(b)}x`;
+                    }
+                    if (c !== 0) {
+                        functionStr += ` ${formatSign(c)}`;
+                    }
+                    if (a === 0 && b === 0 && c === 0) {
+                        functionStr = '0';
+                    } else if (a === 0 && b === 0) {
+                        functionStr = `${c}`;
+                    } else if (a === 0) {
+                        functionStr = `${b}x`;
+                        if (c !== 0) functionStr += ` ${formatSign(c)}`;
+                    }
+
+                    displaysQ.function.textContent = `f(x) = ${functionStr}`;
+
+                    // Direction
+                    if (a > 0) {
+                        displaysQ.direction.textContent = 'Abre hacia arriba (U)';
+                    } else if (a < 0) {
+                        displaysQ.direction.textContent = 'Abre hacia abajo (∩)';
+                    } else {
+                        displaysQ.direction.textContent = 'No es una parabola (es una linea)';
+                    }
+
+                    // Vertex
+                    let vertexX, vertexY;
+                    if (a !== 0) {
+                        vertexX = -b / (2 * a);
+                        vertexY = a * vertexX * vertexX + b * vertexX + c;
+                        displaysQ.vertex.textContent = `(${formatNumber(vertexX)}, ${formatNumber(vertexY)})`;
+                        displaysQ.axisOfSymmetry.textContent = `x = ${formatNumber(vertexX)}`;
+                    } else {
+                        if (b !== 0) {
+                            vertexX = 'N/A';
+                            vertexY = 'N/A';
+                            displaysQ.vertex.textContent = 'No aplica (es una linea)';
+                            displaysQ.axisOfSymmetry.textContent = 'No aplica (es una linea)';
+                        } else {
+                            vertexX = 'N/A';
+                            vertexY = c;
+                            displaysQ.vertex.textContent = `(Cualquier x, ${formatNumber(c)})`;
+                            displaysQ.axisOfSymmetry.textContent = 'No aplica (es una constante)';
+                        }
+                    }
+
+                    // Roots
+                    const discriminant = b * b - 4 * a * c;
+                    let rootsText;
+                    if (a === 0) {
+                        if (b !== 0) {
+                            const root = -c / b;
+                            rootsText = `x = ${formatNumber(root)}`;
+                        } else {
+                            rootsText = c === 0 ? 'Todos los reales (si f(x)=0)' : 'No tiene';
+                        }
+                    } else if (discriminant > 0) {
+                        const root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                        const root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+                        rootsText = `x₁ = ${formatNumber(root1)}, x₂ = ${formatNumber(root2)}`;
+                    } else if (discriminant === 0) {
+                        const root = -b / (2 * a);
+                        rootsText = `x = ${formatNumber(root)} (raiz doble)`;
+                    } else {
+                        rootsText = 'No tiene raices reales';
+                    }
+                    displaysQ.roots.textContent = rootsText;
+
+                    // Y-intercept
+                    displaysQ.yIntercept.textContent = `(0, ${formatNumber(c)})`;
+
+                    // Domain and Range
+                    displaysQ.domain.textContent = 'x ∈ ℝ';
+                    if (a > 0) {
+                        displaysQ.range.textContent = `y ∈ [${formatNumber(vertexY)}, ∞)`;
+                    } else if (a < 0) {
+                        displaysQ.range.textContent = `y ∈ (-∞, ${formatNumber(vertexY)}]`;
+                    } else {
+                        if (b !== 0) {
+                            displaysQ.range.textContent = 'y ∈ ℝ';
+                        } else {
+                            displaysQ.range.textContent = `y = ${formatNumber(c)}`;
+                        }
+                    }
+
+                    const data = [];
+                    for (let x = -10; x <= 10; x += 0.1) {
+                        data.push({ x: x, y: a * x * x + b * x + c });
+                    }
+                    updateChartQ(data, vertexX, vertexY);
                 }
 
-                if (!chart) {
-                    chart = new Chart(ctx, {
-                        type: 'scatter',
-                        data: { datasets: datasets },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            showLine: true,
-                            scales: {
-                                x: {
-                                    type: 'linear',
-                                    position: 'bottom',
-                                    min: -10,
-                                    max: 10,
-                                    grid: { color: '#E5E7EB' },
-                                    borderColor: '#000000',
-                                    borderWidth: 2,
-                                    grid: {
-                                        color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
-                                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
-                                        // Destacar las lineas de la cuadricula en numeros enteros
-                                        drawOnChartArea: true,
-                                        tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
-                                        tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                function updateChartQ(data, vertexX, vertexY) {
+                    const datasets = [
+                        {
+                            label: 'f(x)',
+                            data: data,
+                            borderColor: '#F97316',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
+                    ];
+
+                    if (parseFloat(paramsQ.a.value) !== 0 && vertexX !== 'N/A') {
+                        datasets.push({
+                            label: 'Vertice',
+                            data: [{ x: vertexX, y: vertexY }],
+                            backgroundColor: '#DC2626',
+                            borderColor: '#DC2626',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            showLine: false
+                        });
+                    }
+
+                    if (!currentChartQ) {
+                        currentChartQ = new Chart(ctxQ, {
+                            type: 'scatter',
+                            data: { datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                showLine: true,
+                                scales: {
+                                    x: {
+                                        type: 'linear',
+                                        position: 'bottom',
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
                                     },
-                                    ticks: {
-                                        stepSize: 1, // Mostrar ticks en cada numero entero
+                                    y: {
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
                                     }
                                 },
-                                y: {
-                                    min: -10,
-                                    max: 10,
-                                    grid: { color: '#E5E7EB' },
-                                    borderColor: '#000000',
-                                    borderWidth: 2,
-                                    grid: {
-                                        color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
-                                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
-                                        // Destacar las lineas de la cuadricula en numeros enteros
-                                        drawOnChartArea: true,
-                                        tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
-                                        tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
-                                    },
-                                    ticks: {
-                                        stepSize: 1, // Mostrar ticks en cada numero entero
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label.includes('Asintota')) return label;
-                                            return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                if (label === 'Vertice') return `Vertice: (${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)})`;
+                                                return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
-                } else {
-                    const currentVA = -parseFloat(params.d.value) / parseFloat(params.c.value);
-                    const currentHA = parseFloat(params.a.value) / parseFloat(params.c.value);
-
-                    let xMin = -10;
-                    let xMax = 10;
-                    let yMin = -10;
-                    let yMax = 10;
-                    
-                    chart.data.datasets = datasets;
-                    chart.options.scales.x.min = xMin;
-                    chart.options.scales.x.max = xMax;
-                    chart.options.scales.y.min = yMin;
-                    chart.options.scales.y.max = yMax;
-                    chart.update();
+                        });
+                    } else {
+                        currentChartQ.data.datasets = datasets;
+                        currentChartQ.update();
+                    }
                 }
+
+                Object.values(paramsQ).forEach(param => {
+                    param.addEventListener('input', updateQuadraticApplication);
+                });
+                
+                simplifyPropertiesBtnQ.addEventListener('click', async () => {
+                    simplifiedExplanationOutputQ.classList.remove('hidden');
+                    simplifiedExplanationOutputQ.textContent = 'Generando explicacion...';
+
+                    const prompt = "Explica los conceptos de vertice, eje de simetria, raices, dominio y rango de una funcion cuadratica de la forma ax^2 + bx + c de una manera muy sencilla y con una analogia, para un adolescente de 15 anos. Se conciso.";
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            simplifiedExplanationOutputQ.textContent = text;
+                        } else {
+                            simplifiedExplanationOutputQ.textContent = 'Error: No se pudo generar la explicacion.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        simplifiedExplanationOutputQ.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                generateProblemBtnQ.addEventListener('click', async () => {
+                    generatedProblemOutputQ.classList.remove('hidden');
+                    generatedProblemOutputQ.textContent = 'Generando problema...';
+
+                    const a = parseFloat(paramsQ.a.value);
+                    const b = parseFloat(paramsQ.b.value);
+                    const c = parseFloat(paramsQ.c.value);
+
+                    let problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una funcion cuadratica de la forma f(x) = ${a}x^2 ${formatSign(b)}x ${formatSign(c)}. El problema debe ser relevante para un adolescente de 15 anos y debe requerir el calculo de alguna propiedad de la funcion (como el vertice o las raices). Presenta el problema claramente.`;
+                    
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            generatedProblemOutputQ.textContent = text;
+                        } else {
+                            generatedProblemOutputQ.textContent = 'Error: No se pudo generar el problema.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        generatedProblemOutputQ.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                updateQuadraticApplication();
+                setupSubTabs('sub-tabs-quadratic', 'sub-tab-content-quadratic');
             }
 
-            Object.values(params).forEach(param => {
-                param.addEventListener('input', updateApplication);
-            });
-            
-            const tabs = document.getElementById('tabs');
-            const tabPanes = document.querySelectorAll('#tab-content .tab-pane');
-            tabs.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    tabs.querySelector('.active').classList.remove('active');
-                    e.target.classList.add('active');
-                    
-                    tabPanes.forEach(pane => pane.classList.add('hidden'));
-                    document.getElementById(e.target.dataset.target).classList.remove('hidden');
-                }
-            });
-
-            // LLM Integration
-            simplifyAsymptotesBtn.addEventListener('click', async () => {
-                simplifiedExplanationOutput.classList.remove('hidden');
-                simplifiedExplanationOutput.textContent = 'Generando explicacion...';
-
-                const prompt = "Explica el concepto de asintotas en funciones racionales de la forma (ax+b)/(cx+d) de una manera muy sencilla y con una analogia, para un adolescente de 15 anos. Se conciso.";
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        simplifiedExplanationOutput.textContent = text;
-                    } else {
-                        simplifiedExplanationOutput.textContent = 'Error: No se pudo generar la explicacion.';
-                    }
-                } catch (error) {
-                    console.error('Error al llamar a la API de Gemini:', error);
-                    simplifiedExplanationOutput.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
-                }
-            });
-
-            generateProblemBtn.addEventListener('click', async () => {
-                generatedProblemOutput.classList.remove('hidden');
-                generatedProblemOutput.textContent = 'Generando problema...';
-
-                const a = parseFloat(params.a.value);
-                const b = parseFloat(params.b.value);
-                const c = parseFloat(params.c.value);
-                const d = parseFloat(params.d.value);
-
-                const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una funcion racional de la forma f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)}). El problema debe ser relevante para un adolescente de 15 anos y debe requerir el calculo de alguna propiedad de la funcion (como asintotas o intersecciones). Presenta el problema claramente.`;
+            // --- Rational Functions Explorer Logic ---
+            function initializeRationalExplorer() {
+                const ctxR = document.getElementById('rationalFunctionChart').getContext('2d');
                 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const paramsR = {
+                    a: document.getElementById('paramAR'),
+                    b: document.getElementById('paramBR'),
+                    c: document.getElementById('paramCR'),
+                    d: document.getElementById('paramDR'),
+                };
 
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        generatedProblemOutput.textContent = text;
-                    } else {
-                        generatedProblemOutput.textContent = 'Error: No se pudo generar el problema.';
+                const valuesR = {
+                    a: document.getElementById('paramARValue'),
+                    b: document.getElementById('paramBRValue'),
+                    c: document.getElementById('paramCRValue'),
+                    d: document.getElementById('paramDRValue'),
+                };
+
+                const displaysR = {
+                    function: document.getElementById('functionDisplayR'),
+                    domain: document.getElementById('domainDisplayR'),
+                    range: document.getElementById('rangeDisplayR'),
+                    verticalAsymptote: document.getElementById('verticalAsymptoteDisplayR'),
+                    horizontalAsymptote: document.getElementById('horizontalAsymptoteDisplayR'),
+                    yIntercept: document.getElementById('yInterceptDisplayR'),
+                    xIntercept: document.getElementById('xInterceptDisplayR'),
+                    specialCase: document.getElementById('specialCaseR'),
+                };
+                
+                const calcsR = {
+                    va: document.getElementById('va-calcR'),
+                    ha: document.getElementById('ha-calcR'),
+                    domainExclusion: document.getElementById('domain-exclusionR'),
+                    rangeExclusion: document.getElementById('range-exclusionR'),
+                    yInt: document.getElementById('y-int-calcR'),
+                    xInt: document.getElementById('x-int-calcR'),
+                };
+
+                const simplifyAsymptotesBtnR = document.getElementById('simplifyAsymptotesR');
+                const simplifiedExplanationOutputR = document.getElementById('simplifiedExplanationOutputR');
+                const generateProblemBtnR = document.getElementById('generateProblemR');
+                const generatedProblemOutputR = document.getElementById('generatedProblemOutputR');
+
+                function updateRationalApplication() {
+                    const a = parseFloat(paramsR.a.value);
+                    const b = parseFloat(paramsR.b.value);
+                    const c = parseFloat(paramsR.c.value);
+                    const d = parseFloat(paramsR.d.value);
+
+                    valuesR.a.textContent = a;
+                    valuesR.b.textContent = b;
+                    valuesR.c.textContent = c;
+                    valuesR.d.textContent = d;
+
+                    displaysR.specialCase.classList.add('hidden');
+                    
+                    let numeratorStr = `${a}x`;
+                    if (b !== 0) {
+                        numeratorStr += ` ${formatSign(b)}`;
                     }
-                } catch (error) {
-                    console.error('Error al llamar a la API de Gemini:', error);
-                    generatedProblemOutput.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
-                }
-            });
 
-            updateApplication();
+                    let denominatorStr = `${c}x`;
+                    if (d !== 0) {
+                        denominatorStr += ` ${formatSign(d)}`;
+                    }
+
+                    if (a === 0 && b === 0) numeratorStr = '0';
+                    else if (a === 0) numeratorStr = `${b}`;
+                    if (a === 0 && b > 0) numeratorStr = `${b}`;
+                    if (a === 0 && b < 0) numeratorStr = `-${Math.abs(b)}`;
+
+                    if (c === 0 && d === 0) denominatorStr = '0';
+                    else if (c === 0) denominatorStr = `${d}`;
+                    if (c === 0 && d > 0) denominatorStr = `${d}`;
+                    if (c === 0 && d < 0) denominatorStr = `-${Math.abs(d)}`;
+
+                    let functionStr = `f(x) = (${numeratorStr}) / (${denominatorStr})`;
+                    displaysR.function.textContent = functionStr;
+
+                    if (c === 0) {
+                        handleLinearCaseR(a, b, d);
+                        return;
+                    }
+                    
+                    handleRationalCaseR(a,b,c,d);
+                }
+                
+                function handleLinearCaseR(a, b, d) {
+                    if (d === 0) {
+                        displaysR.specialCase.textContent = "Caso Indefinido: c=0 y d=0. El denominador es cero para todo x.";
+                        displaysR.specialCase.classList.remove('hidden');
+                        clearDisplaysR();
+                        updateChartR([], [], null, null);
+                        return;
+                    }
+                    
+                    let linearTerm = '';
+                    if (a !== 0) {
+                        linearTerm = `(${formatNumber(a/d)})x`;
+                    }
+                    let constantTerm = '';
+                    if (b !== 0) {
+                        constantTerm = formatSign(b/d);
+                    } else if (a === 0) {
+                        constantTerm = '0';
+                    }
+
+                    displaysR.specialCase.textContent = `Con c=0, la funcion es lineal: f(x) = ${linearTerm}${constantTerm}`;
+                    displaysR.specialCase.classList.remove('hidden');
+                    
+                    displaysR.domain.textContent = 'x ∈ ℝ';
+                    displaysR.range.textContent = 'y ∈ ℝ';
+                    displaysR.verticalAsymptote.textContent = 'No tiene';
+                    displaysR.horizontalAsymptote.textContent = 'No tiene';
+                    
+                    const yInt = b / d;
+                    displaysR.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
+                    
+                    const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b≠0)';
+                    displaysR.xIntercept.textContent = a === 0 ? xInt : `(${formatNumber(xInt)}, 0)`;
+                    
+                    calcsR.va.textContent = 'No aplica (c=0).';
+                    calcsR.ha.textContent = 'No aplica (c=0).';
+                    calcsR.domainExclusion.textContent = 'No hay exclusiones.';
+                    calcsR.rangeExclusion.textContent = 'No hay exclusiones.';
+                    calcsR.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${d} ) = ${formatNumber(yInt)}`;
+                    calcsR.xInt.textContent = a !== 0 ? `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}` : 'El numerador nunca es cero.';
+
+                    const linearData = [];
+                    for (let x = -20; x <= 20; x += 0.5) {
+                        linearData.push({x: x, y: (a * x + b) / d});
+                    }
+                    updateChartR(linearData, [], null, null);
+                }
+
+                function handleRationalCaseR(a, b, c, d) {
+                    const va = -d / c;
+                    const ha = a / c;
+
+                    displaysR.domain.textContent = `x ∈ ℝ, x ≠ ${formatNumber(va)}`;
+                    displaysR.range.textContent = `y ∈ ℝ, y ≠ ${formatNumber(ha)}`;
+                    displaysR.verticalAsymptote.textContent = `x = ${formatNumber(va)}`;
+                    displaysR.horizontalAsymptote.textContent = `y = ${formatNumber(ha)}`;
+                    
+                    calcsR.va.textContent = `${c}x ${formatSign(d)} = 0  =>  x = ${formatNumber(va)}`;
+                    calcsR.ha.textContent = `y = a/c = ${a}/${c} = ${formatNumber(ha)}`;
+                    calcsR.domainExclusion.textContent = `El valor x = ${formatNumber(va)} esta excluido.`;
+                    calcsR.rangeExclusion.textContent = `El valor y = ${formatNumber(ha)} esta excluido.`;
+
+                    const yInt = b / d;
+                    if (d !== 0) {
+                        displaysR.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
+                        calcsR.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${c}(0) ${formatSign(d)} ) = ${formatNumber(yInt)}`;
+                    } else {
+                        displaysR.yIntercept.textContent = 'No tiene (en la asintota)';
+                        calcsR.yInt.textContent = 'x=0 es la asintota vertical.';
+                    }
+
+                    const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b≠0)';
+                    if (a !== 0) {
+                        displaysR.xIntercept.textContent = `(${formatNumber(xInt)}, 0)`;
+                        calcsR.xInt.textContent = `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}`;
+                    } else {
+                        displaysR.xIntercept.textContent = 'No tiene (si a=0, b≠0)';
+                        calcsR.xInt.textContent = 'El numerador nunca es cero (a=0 y b≠0).';
+                    }
+
+                    const data1 = [];
+                    const data2 = [];
+                    const plotRange = 20; 
+                    const step = 0.1;
+
+                    for (let x = va - plotRange; x < va; x += step) {
+                        data1.push({ x: x, y: (a * x + b) / (c * x + d) });
+                    }
+                    for (let x = va + step; x < va + plotRange; x += step) {
+                        data2.push({ x: x, y: (a * x + b) / (c * x + d) });
+                    }
+                    updateChartR(data1, data2, va, ha);
+                }
+
+                function clearDisplaysR() {
+                    Object.values(displaysR).forEach(el => { if(el.id !== 'specialCaseR') el.textContent = 'N/A'; });
+                    Object.values(calcsR).forEach(el => el.textContent = 'No aplicable.');
+                }
+
+                function updateChartR(data1, data2, va, ha) {
+                    const datasets = [
+                        {
+                            label: 'f(x)',
+                            data: data1,
+                            borderColor: '#F97316',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'f(x)',
+                            data: data2,
+                            borderColor: '#F97316',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
+                    ];
+
+                    if (va !== null) {
+                        datasets.push({
+                            label: 'Asintota Vertical',
+                            data: [{x: va, y: -1000}, {x: va, y: 1000}],
+                            borderColor: '#DC2626',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        });
+                    }
+                    if (ha !== null) {
+                        datasets.push({
+                            label: 'Asintota Horizontal',
+                            data: [{x: -1000, y: ha}, {x: 1000, y: ha}],
+                            borderColor: '#16A34A',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        });
+                    }
+
+                    if (!currentChartR) {
+                        currentChartR = new Chart(ctxR, {
+                            type: 'scatter',
+                            data: { datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                showLine: true,
+                                scales: {
+                                    x: {
+                                        type: 'linear',
+                                        position: 'bottom',
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
+                                    },
+                                    y: {
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                if (label.includes('Asintota')) return label;
+                                                return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        currentChartR.data.datasets = datasets;
+                        currentChartR.update();
+                    }
+                }
+
+                Object.values(paramsR).forEach(param => {
+                    param.addEventListener('input', updateRationalApplication);
+                });
+                
+                simplifyAsymptotesBtnR.addEventListener('click', async () => {
+                    simplifiedExplanationOutputR.classList.remove('hidden');
+                    simplifiedExplanationOutputR.textContent = 'Generando explicacion...';
+
+                    const prompt = "Explica el concepto de asintotas en funciones racionales de la forma (ax+b)/(cx+d) de una manera muy sencilla y con una analogia, para un adolescente de 15 anos. Se conciso.";
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            simplifiedExplanationOutputR.textContent = text;
+                        } else {
+                            simplifiedExplanationOutputR.textContent = 'Error: No se pudo generar la explicacion.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        simplifiedExplanationOutputR.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                generateProblemBtnR.addEventListener('click', async () => {
+                    generatedProblemOutputR.classList.remove('hidden');
+                    generatedProblemOutputR.textContent = 'Generando problema...';
+
+                    const a = parseFloat(paramsR.a.value);
+                    const b = parseFloat(paramsR.b.value);
+                    const c = parseFloat(paramsR.c.value);
+                    const d = parseFloat(paramsR.d.value);
+
+                    const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una funcion racional de la forma f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)}). El problema debe ser relevante para un adolescente de 15 anos y debe requerir el calculo de alguna propiedad de la funcion (como asintotas o intersecciones). Presenta el problema claramente.`;
+                    
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            generatedProblemOutputR.textContent = text;
+                        } else {
+                            generatedProblemOutputR.textContent = 'Error: No se pudo generar el problema.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        generatedProblemOutputR.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                updateRationalApplication();
+                setupSubTabs('sub-tabs-rational', 'sub-tab-content-rational');
+            }
+
+            // --- Logarithmic Functions Explorer Logic ---
+            function initializeLogarithmicExplorer() {
+                const ctxL = document.getElementById('logarithmicFunctionChart').getContext('2d');
+                
+                const paramsL = {
+                    b: document.getElementById('paramBL'),
+                    h: document.getElementById('paramHL'),
+                    k: document.getElementById('paramKL'),
+                };
+
+                const valuesL = {
+                    b: document.getElementById('paramBLValue'),
+                    h: document.getElementById('paramHLValue'),
+                    k: document.getElementById('paramKLValue'),
+                };
+
+                const displaysL = {
+                    function: document.getElementById('functionDisplayL'),
+                    domain: document.getElementById('domainDisplayL'),
+                    range: document.getElementById('rangeDisplayL'),
+                    verticalAsymptote: document.getElementById('verticalAsymptoteDisplayL'),
+                    xIntercept: document.getElementById('xInterceptDisplayL'),
+                    yIntercept: document.getElementById('yInterceptDisplayL'),
+                    specialCase: document.getElementById('specialCaseL'),
+                };
+                
+                const simplifyPropertiesBtnL = document.getElementById('simplifyPropertiesL');
+                const simplifiedExplanationOutputL = document.getElementById('simplifiedExplanationOutputL');
+                const generateProblemBtnL = document.getElementById('generateProblemL');
+                const generatedProblemOutputL = document.getElementById('generatedProblemOutputL');
+
+                function updateLogarithmicApplication() {
+                    const b = parseFloat(paramsL.b.value);
+                    const h = parseFloat(paramsL.h.value);
+                    const k = parseFloat(paramsL.k.value);
+
+                    valuesL.b.textContent = b;
+                    valuesL.h.textContent = h;
+                    valuesL.k.textContent = k;
+
+                    displaysL.specialCase.classList.add('hidden');
+
+                    let functionStr = `log`;
+                    if (b !== 10) {
+                        functionStr += `_${b}`;
+                    }
+                    functionStr += `(x ${formatSign(-h)})`;
+                    if (k !== 0) {
+                        functionStr += ` ${formatSign(k)}`;
+                    }
+                    displaysL.function.textContent = `f(x) = ${functionStr}`;
+
+                    if (b <= 0 || b === 1) {
+                        displaysL.specialCase.textContent = "Error: La base 'b' debe ser positiva y diferente de 1.";
+                        displaysL.specialCase.classList.remove('hidden');
+                        clearDisplaysL();
+                        updateChartL([], null);
+                        return;
+                    }
+
+                    const verticalAsymptote = h;
+                    displaysL.domain.textContent = `x ∈ (${formatNumber(verticalAsymptote)}, ∞)`;
+                    displaysL.verticalAsymptote.textContent = `x = ${formatNumber(verticalAsymptote)}`;
+                    displaysL.range.textContent = 'y ∈ ℝ';
+
+                    let xInterceptText;
+                    const xRoot = Math.pow(b, -k) + h;
+                    if (!isNaN(xRoot) && isFinite(xRoot)) {
+                        xInterceptText = `(${formatNumber(xRoot)}, 0)`;
+                    } else {
+                        xInterceptText = 'No tiene raiz real';
+                    }
+                    displaysL.xIntercept.textContent = xInterceptText;
+
+                    let yInterceptText;
+                    if (h < 0) {
+                        const yInt = (Math.log(0 - h) / Math.log(b)) + k;
+                        if (!isNaN(yInt) && isFinite(yInt)) {
+                            yInterceptText = `(0, ${formatNumber(yInt)})`;
+                        } else {
+                            yInterceptText = 'No tiene (indefinido)';
+                        }
+                    } else {
+                        yInterceptText = 'No tiene (x=0 no esta en el dominio)';
+                    }
+                    displaysL.yIntercept.textContent = yInterceptText;
+
+                    const data = [];
+                    const startX = h + 0.01;
+                    const endX = startX + 20;
+                    const step = 0.1;
+
+                    for (let x = startX; x <= endX; x += step) {
+                        const y = (Math.log(x - h) / Math.log(b)) + k;
+                        if (isFinite(y)) {
+                            data.push({ x: x, y: y });
+                        }
+                    }
+                    updateChartL(data, verticalAsymptote);
+                }
+
+                function clearDisplaysL() {
+                    Object.values(displaysL).forEach(el => { if(el.id !== 'specialCaseL') el.textContent = 'N/A'; });
+                }
+
+                function updateChartL(data, verticalAsymptote) {
+                    const datasets = [
+                        {
+                            label: 'f(x)',
+                            data: data,
+                            borderColor: '#F97316',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }
+                    ];
+
+                    if (verticalAsymptote !== null) {
+                        datasets.push({
+                            label: 'Asintota Vertical',
+                            data: [{x: verticalAsymptote, y: -1000}, {x: verticalAsymptote, y: 1000}],
+                            borderColor: '#DC2626',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        });
+                    }
+
+                    if (!currentChartL) {
+                        currentChartL = new Chart(ctxL, {
+                            type: 'scatter',
+                            data: { datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                showLine: true,
+                                scales: {
+                                    x: {
+                                        type: 'linear',
+                                        position: 'bottom',
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
+                                    },
+                                    y: {
+                                        min: -10,
+                                        max: 10,
+                                        grid: { color: '#E5E7EB' },
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        grid: {
+                                            color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                            lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                            drawOnChartArea: true,
+                                            tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                            tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                        },
+                                        ticks: {
+                                            stepSize: 1,
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                if (label.includes('Asintota')) return label;
+                                                return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        currentChartL.data.datasets = datasets;
+                        currentChartL.update();
+                    }
+                }
+
+                Object.values(paramsL).forEach(param => {
+                    param.addEventListener('input', updateLogarithmicApplication);
+                });
+                
+                simplifyPropertiesBtnL.addEventListener('click', async () => {
+                    simplifiedExplanationOutputL.classList.remove('hidden');
+                    simplifiedExplanationOutputL.textContent = 'Generando explicacion...';
+
+                    const b = parseFloat(paramsL.b.value);
+                    const h = parseFloat(paramsL.h.value);
+                    const k = parseFloat(paramsL.k.value);
+                    const prompt = `Explica los conceptos de dominio, rango, asintota vertical e intersecciones con los ejes de una funcion logaritmica de la forma f(x) = log_${b}(x - ${h}) + ${k} de una manera muy sencilla y con una analogia, para un adolescente de 15 anos. Se conciso.`;
+                    
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            simplifiedExplanationOutputL.textContent = text;
+                        } else {
+                            simplifiedExplanationOutputL.textContent = 'Error: No se pudo generar la explicacion.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        simplifiedExplanationOutputL.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                generateProblemBtnL.addEventListener('click', async () => {
+                    generatedProblemOutputL.classList.remove('hidden');
+                    generatedProblemOutputL.textContent = 'Generando problema...';
+
+                    const b = parseFloat(paramsL.b.value);
+                    const h = parseFloat(paramsL.h.value);
+                    const k = parseFloat(paramsL.k.value);
+                    const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una funcion logaritmica de la forma f(x) = log_${b}(x - ${h}) + ${k}. El problema debe ser relevante para un adolescente de 15 anos y debe requerir el calculo de alguna propiedad de la funcion (como el dominio, la asintota o una interseccion). Presenta el problema claramente.`;
+                    
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            generatedProblemOutputL.textContent = text;
+                        } else {
+                            generatedProblemOutputL.textContent = 'Error: No se pudo generar el problema.';
+                        }
+                    } catch (error) {
+                        console.error('Error al llamar a la API de Gemini:', error);
+                        generatedProblemOutputL.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
+                    }
+                });
+
+                updateLogarithmicApplication();
+                setupSubTabs('sub-tabs-logarithmic', 'sub-tab-content-logarithmic');
+            }
+
+            // --- Initial Load ---
+            // Initialize the first tab (Quadratic Functions) on load
+            switchMainTab('quadratic-explorer');
         });
     </script>
 </body>
