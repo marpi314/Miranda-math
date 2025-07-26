@@ -51,7 +51,7 @@
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold text-orange-600">Explorador de Funciones Racionales</h1>
-            <p class="mt-2 text-lg text-gray-600">Una herramienta interactiva para visualizar $f(x) = \frac{ax+b}{cx+d}$</p>
+            <p class="mt-2 text-lg text-gray-600">Una herramienta interactiva para visualizar f(x) = \frac{ax+b}{cx+d}$</p>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -63,25 +63,25 @@
 
             <aside class="lg:col-span-1 space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Parámetros</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Parametros</h2>
                     <div class="space-y-4">
                         <div class="flex items-center space-x-4">
-                            <label for="paramA" class="slider-label font-medium text-gray-700">Parámetro 'a':</label>
+                            <label for="paramA" class="slider-label font-medium text-gray-700">Parametro 'a':</label>
                             <input type="range" id="paramA" min="-10" max="10" value="2" step="1" class="w-full">
                             <span id="paramAValue" class="param-value font-mono text-orange-600">2</span>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <label for="paramB" class="slider-label font-medium text-gray-700">Parámetro 'b':</label>
+                            <label for="paramB" class="slider-label font-medium text-gray-700">Parametro 'b':</label>
                             <input type="range" id="paramB" min="-10" max="10" value="3" step="1" class="w-full">
                             <span id="paramBValue" class="param-value font-mono text-orange-600">3</span>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <label for="paramC" class="slider-label font-medium text-gray-700">Parámetro 'c':</label>
+                            <label for="paramC" class="slider-label font-medium text-gray-700">Parametro 'c':</label>
                             <input type="range" id="paramC" min="-10" max="10" value="1" step="1" class="w-full">
                             <span id="paramCValue" class="param-value font-mono text-orange-600">1</span>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <label for="paramD" class="slider-label font-medium text-gray-700">Parámetro 'd':</label>
+                            <label for="paramD" class="slider-label font-medium text-gray-700">Parametro 'd':</label>
                             <input type="range" id="paramD" min="-10" max="10" value="-4" step="1" class="w-full">
                             <span id="paramDValue" class="param-value font-mono text-orange-600">-4</span>
                         </div>
@@ -89,15 +89,15 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Análisis de la Función</h2>
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Analisis de la Funcion</h2>
                     <div id="analysis-dashboard" class="space-y-3 text-gray-700">
-                        <p><strong>Función:</strong> <span id="functionDisplay" class="font-mono text-blue-600"></span></p>
+                        <p><strong>Funcion:</strong> <span id="functionDisplay" class="font-mono text-blue-600"></span></p>
                         <p><strong>Dominio:</strong> <span id="domainDisplay" class="font-mono text-blue-600"></span></p>
                         <p><strong>Rango:</strong> <span id="rangeDisplay" class="font-mono text-blue-600"></span></p>
-                        <p><strong>Asíntota Vertical:</strong> <span id="verticalAsymptoteDisplay" class="font-mono text-red-600"></span></p>
-                        <p><strong>Asíntota Horizontal:</strong> <span id="horizontalAsymptoteDisplay" class="font-mono text-green-600"></span></p>
-                        <p><strong>Intersección Eje Y:</strong> <span id="yInterceptDisplay" class="font-mono text-purple-600"></span></p>
-                        <p><strong>Intersección Eje X:</strong> <span id="xInterceptDisplay" class="font-mono text-purple-600"></span></p>
+                        <p><strong>Asintota Vertical:</strong> <span id="verticalAsymptoteDisplay" class="font-mono text-red-600"></span></p>
+                        <p><strong>Asintota Horizontal:</strong> <span id="horizontalAsymptoteDisplay" class="font-mono text-green-600"></span></p>
+                        <p><strong>Interseccion Eje Y:</strong> <span id="yInterceptDisplay" class="font-mono text-purple-600"></span></p>
+                        <p><strong>Interseccion Eje X:</strong> <span id="xInterceptDisplay" class="font-mono text-purple-600"></span></p>
                         <div id="specialCase" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden"></div>
                     </div>
                 </div>
@@ -108,59 +108,59 @@
             <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave</h2>
             <div class="border-b border-gray-200">
                 <nav class="flex flex-wrap -mb-px justify-center" id="tabs">
-                    <button data-target="tab-asymptotes" class="tab-button active text-lg py-4 px-6 border-b-2 font-medium">Asíntotas</button>
+                    <button data-target="tab-asymptotes" class="tab-button active text-lg py-4 px-6 border-b-2 font-medium">Asintotas</button>
                     <button data-target="tab-domain-range" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Dominio y Rango</button>
                     <button data-target="tab-intercepts" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Intersecciones</button>
-                    <button data-target="tab-application" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicación Real</button>
+                    <button data-target="tab-application" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicacion Real</button>
                 </nav>
             </div>
             <div id="tab-content" class="pt-6">
                 <div id="tab-asymptotes" class="tab-pane space-y-4">
-                    <p>Las asíntotas son líneas a las que la gráfica de la función se acerca indefinidamente pero nunca las cruza (en este tipo de función).</p>
+                    <p>Las asintotas son lineas a las que la grafica de la funcion se acerca indefinidamente pero nunca las cruza (en este tipo de funcion).</p>
                     <div>
-                        <h3 class="text-xl font-semibold text-red-600">Asíntota Vertical</h3>
-                        <p>Ocurre donde el denominador es igual a cero, ya que la división por cero no está definida. Para encontrarla, resolvemos la ecuación $cx + d = 0$.</p>
-                        <p class="p-3 bg-red-50 rounded-md mt-2">Cálculo: <span id="va-calc" class="font-mono"></span></p>
+                        <h3 class="text-xl font-semibold text-red-600">Asintota Vertical</h3>
+                        <p>Ocurre donde el denominador es igual a cero, ya que la division por cero no esta definida. Para encontrarla, resolvemos la ecuacion $cx + d = 0$.</p>
+                        <p class="p-3 bg-red-50 rounded-md mt-2">Calculo: <span id="va-calc" class="font-mono"></span></p>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-green-600">Asíntota Horizontal</h3>
-                        <p>Describe el comportamiento de la función cuando $x$ se vuelve muy grande (positivo o negativo). Se encuentra dividiendo los coeficientes de $x$ del numerador y denominador.</p>
-                        <p class="p-3 bg-green-50 rounded-md mt-2">Cálculo: <span id="ha-calc" class="font-mono"></span></p>
+                        <h3 class="text-xl font-semibold text-green-600">Asintota Horizontal</h3>
+                        <p>Describe el comportamiento de la funcion cuando x se vuelve muy grande (positivo o negativo). Se encuentra dividiendo los coeficientes de $x$ del numerador y denominador.</p>
+                        <p class="p-3 bg-green-50 rounded-md mt-2">Calculo: <span id="ha-calc" class="font-mono"></span></p>
                     </div>
-                    <button id="simplifyAsymptotes" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">? Explicación Simplificada</button>
+                    <button id="simplifyAsymptotes" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">âœ¨ Explicacion Simplificada</button>
                     <div id="simplifiedExplanationOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
                 </div>
                 <div id="tab-domain-range" class="tab-pane hidden space-y-4">
                     <div>
                         <h3 class="text-xl font-semibold text-blue-600">Dominio</h3>
-                        <p>El dominio es el conjunto de todos los valores de $x$ para los cuales la función está definida. En una función racional, esto incluye todos los números reales excepto el valor de $x$ que corresponde a la asíntota vertical.</p>
-                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusión: <span id="domain-exclusion" class="font-mono"></span></p>
+                        <p>El dominio es el conjunto de todos los valores de x para los cuales la funcion esta definida. En una funcion racional, esto incluye todos los numeros reales excepto el valor de $x$ que corresponde a la asintota vertical.</p>
+                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="domain-exclusion" class="font-mono"></span></p>
                     </div>
                     <div>
                         <h3 class="text-xl font-semibold text-blue-600">Rango</h3>
-                        <p>El rango es el conjunto de todos los valores posibles de $y$. Para esta forma de función racional, incluye todos los números reales excepto el valor de $y$ que corresponde a la asíntota horizontal.</p>
-                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusión: <span id="range-exclusion" class="font-mono"></span></p>
+                        <p>El rango es el conjunto de todos los valores posibles de y. Para esta forma de funcion racional, incluye todos los numeros reales excepto el valor de $y$ que corresponde a la asintota horizontal.</p>
+                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusion: <span id="range-exclusion" class="font-mono"></span></p>
                     </div>
                 </div>
                 <div id="tab-intercepts" class="tab-pane hidden space-y-4">
                      <div>
-                        <h3 class="text-xl font-semibold text-purple-600">Intersección con el Eje Y</h3>
-                        <p>Es el punto donde la gráfica cruza el eje vertical. Se encuentra evaluando la función en $x=0$.</p>
-                        <p class="p-3 bg-purple-50 rounded-md mt-2">Cálculo: <span id="y-int-calc" class="font-mono"></span></p>
+                        <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje Y</h3>
+                        <p>Es el punto donde la grafica cruza el eje vertical. Se encuentra evaluando la funcion en x=0.</p>
+                        <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="y-int-calc" class="font-mono"></span></p>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-purple-600">Intersección con el Eje X (Raíz)</h3>
-                        <p>Es el punto donde la gráfica cruza el eje horizontal. Se encuentra igualando el numerador a cero y resolviendo para $x$, ya que una fracción es cero solo si su numerador es cero.</p>
-                        <p class="p-3 bg-purple-50 rounded-md mt-2">Cálculo: <span id="x-int-calc" class="font-mono"></span></p>
+                        <h3 class="text-xl font-semibold text-purple-600">Interseccion con el Eje X (Raiz)</h3>
+                        <p>Es el punto donde la grafica cruza el eje horizontal. Se encuentra igualando el numerador a cero y resolviendo para $x$, ya que una fraccion es cero solo si su numerador es cero.</p>
+                        <p class="p-3 bg-purple-50 rounded-md mt-2">Calculo: <span id="x-int-calc" class="font-mono"></span></p>
                     </div>
                 </div>
                 <div id="tab-application" class="tab-pane hidden space-y-4">
-                    <h3 class="text-xl font-semibold">Ejemplo: Costo Promedio de Producción</h3>
-                    <p>Imagina una fábrica con un costo fijo de $1000 (b) y un costo de producción por unidad de $5 (a). La función de costo promedio por unidad $x$ (donde $c=1, d=0$) sería:</p>
-                    <p class="text-center text-2xl my-4 font-mono">$C(x) = \frac{5x + 1000}{x}$</p>
-                    <p>La <strong>asíntota horizontal</strong> de esta función es $y = 5/1 = 5$.</p>
-                    <p><strong>Interpretación:</strong> A medida que la fábrica produce más y más unidades (cuando $x$ tiende a infinito), el costo fijo de $1000 se distribuye entre tantas unidades que su impacto se vuelve insignificante. El costo promedio por unidad se acerca cada vez más al costo de producción por unidad, que es $5. Nunca será exactamente $5, pero se aproxima a ese valor. La asíntota horizontal representa este límite o "costo mínimo teórico a largo plazo".</p>
-                    <button id="generateProblem" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">? Generar Problema</button>
+                    <h3 class="text-xl font-semibold">Ejemplo: Costo Promedio de Produccion</h3>
+                    <p>Imagina una fabrica con un costo fijo de $1000 (b) y un costo de produccion por unidad de $5 (a). La funcion de costo promedio por unidad $x$ (donde $c=1, d=0$) seria:</p>
+                    <p class="text-center text-2xl my-4 font-mono">C(x) = 5x + 1000/x</p>
+                    <p>La <strong>asintota horizontal</strong> de esta funcion es $y = 5/1 = 5$.</p>
+                    <p><strong>Interpretacion:</strong> A medida que la fabrica produce mas y mas unidades (cuando $x$ tiende a infinito), el costo fijo de $1000 se distribuye entre tantas unidades que su impacto se vuelve insignificante. El costo promedio por unidad se acerca cada vez mas al costo de produccion por unidad, que es $5. Nunca sera exactamente $5, pero se aproxima a ese valor. La asintota horizontal representa este limite o "costo minimo teorico a largo plazo".</p>
+                    <button id="generateProblem" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">âœ¨ Generar Problema</button>
                     <div id="generatedProblemOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
                 </div>
             </div>
@@ -216,8 +216,15 @@
                 return num.toFixed(2).replace(/\.00$/, '');
             }
             
+            // CORRECTED: Formatea el signo para la visualizacion de la funcion
             function formatSign(num) {
-                return num < 0 ? `- ${-num}` : `+ ${-num}`;
+                if (num === 0) {
+                    return ''; // No se muestra signo ni numero si es cero
+                } else if (num > 0) {
+                    return `+ ${num}`; // Numeros positivos con signo +
+                } else { // num < 0
+                    return `- ${Math.abs(num)}`; // Numeros negativos con signo - y su valor absoluto
+                }
             }
 
             function updateApplication() {
@@ -233,7 +240,35 @@
 
                 displays.specialCase.classList.add('hidden');
                 
-                let functionStr = `f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)})`;
+                // Asegurarse de que el primer termino del numerador y denominador no tenga un '+' si es positivo
+                let numeratorStr = `${a}x`;
+                if (b !== 0) {
+                    numeratorStr += ` ${formatSign(b)}`;
+                }
+
+                let denominatorStr = `${c}x`;
+                if (d !== 0) {
+                    denominatorStr += ` ${formatSign(d)}`;
+                }
+
+                // Manejar el caso donde el coeficiente de x es 0 en el numerador o denominador
+                if (a === 0 && b === 0) numeratorStr = '0';
+                else if (a === 0) numeratorStr = `${b}`;
+                
+                if (c === 0 && d === 0) denominatorStr = '0';
+                else if (c === 0) denominatorStr = `${d}`;
+
+                // Si 'a' es 0 y 'b' es positivo, no queremos '+ b'. Queremos 'b'.
+                if (a === 0 && b > 0) numeratorStr = `${b}`;
+                // Si 'a' es 0 y 'b' es negativo, queremos '-|b|'.
+                if (a === 0 && b < 0) numeratorStr = `-${Math.abs(b)}`;
+
+                // Si 'c' es 0 y 'd' es positivo, no queremos '+ d'. Queremos 'd'.
+                if (c === 0 && d > 0) denominatorStr = `${d}`;
+                // Si 'c' es 0 y 'd' es negativo, queremos '-|d|'.
+                if (c === 0 && d < 0) denominatorStr = `-${Math.abs(d)}`;
+
+                let functionStr = `f(x) = (${numeratorStr}) / (${denominatorStr})`;
                 displays.function.textContent = functionStr;
 
                 if (c === 0) {
@@ -253,18 +288,29 @@
                     return;
                 }
                 
-                displays.specialCase.textContent = `Con c=0, la función es lineal: f(x) = (${formatNumber(a/d)})x ${formatSign(b/d)}`;
+                let linearTerm = '';
+                if (a !== 0) {
+                    linearTerm = `(${formatNumber(a/d)})x`;
+                }
+                let constantTerm = '';
+                if (b !== 0) {
+                    constantTerm = formatSign(b/d); // Usa formatSign para el signo
+                } else if (a === 0) { // If a is 0 and b is 0, it's just 0
+                    constantTerm = '0';
+                }
+
+                displays.specialCase.textContent = `Con c=0, la funcion es lineal: f(x) = ${linearTerm}${constantTerm}`;
                 displays.specialCase.classList.remove('hidden');
                 
-                displays.domain.textContent = 'x ? R';
-                displays.range.textContent = 'y ? R';
+                displays.domain.textContent = 'x âˆˆ â„';
+                displays.range.textContent = 'y âˆˆ â„';
                 displays.verticalAsymptote.textContent = 'No tiene';
                 displays.horizontalAsymptote.textContent = 'No tiene';
                 
                 const yInt = b / d;
                 displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
                 
-                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b?0)';
+                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, bâ‰ 0)';
                 displays.xIntercept.textContent = a === 0 ? xInt : `(${formatNumber(xInt)}, 0)`;
                 
                 calcs.va.textContent = 'No aplica (c=0).';
@@ -285,43 +331,44 @@
                 const va = -d / c;
                 const ha = a / c;
 
-                displays.domain.textContent = `x ? R, x ? ${formatNumber(va)}`;
-                displays.range.textContent = `y ? R, y ? ${formatNumber(ha)}`;
+                displays.domain.textContent = `x âˆˆ â„, x â‰  ${formatNumber(va)}`;
+                displays.range.textContent = `y âˆˆ â„, y â‰  ${formatNumber(ha)}`;
                 displays.verticalAsymptote.textContent = `x = ${formatNumber(va)}`;
                 displays.horizontalAsymptote.textContent = `y = ${formatNumber(ha)}`;
                 
                 calcs.va.textContent = `${c}x ${formatSign(d)} = 0  =>  x = ${formatNumber(va)}`;
                 calcs.ha.textContent = `y = a/c = ${a}/${c} = ${formatNumber(ha)}`;
-                calcs.domainExclusion.textContent = `El valor x = ${formatNumber(va)} está excluido.`;
-                calcs.rangeExclusion.textContent = `El valor y = ${formatNumber(ha)} está excluido.`;
+                calcs.domainExclusion.textContent = `El valor x = ${formatNumber(va)} esta excluido.`;
+                calcs.rangeExclusion.textContent = `El valor y = ${formatNumber(ha)} esta excluido.`;
 
                 const yInt = b / d;
                 if (d !== 0) {
                     displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
                     calcs.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${c}(0) ${formatSign(d)} ) = ${formatNumber(yInt)}`;
                 } else {
-                    displays.yIntercept.textContent = 'No tiene (en la asíntota)';
-                    calcs.yInt.textContent = 'x=0 es la asíntota vertical.';
+                    displays.yIntercept.textContent = 'No tiene (en la asintota)';
+                    calcs.yInt.textContent = 'x=0 es la asintota vertical.';
                 }
 
-                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b?0)';
+                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, bâ‰ 0)';
                 if (a !== 0) {
                     displays.xIntercept.textContent = `(${formatNumber(xInt)}, 0)`;
                     calcs.xInt.textContent = `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}`;
                 } else {
-                    displays.xIntercept.textContent = 'No tiene (si a=0, b?0)';
-                    calcs.xInt.textContent = 'El numerador nunca es cero (a=0 y b?0).';
+                    displays.xIntercept.textContent = 'No tiene (si a=0, bâ‰ 0)';
+                    calcs.xInt.textContent = 'El numerador nunca es cero (a=0 y bâ‰ 0).';
                 }
 
                 const data1 = [];
                 const data2 = [];
-                const range = 20;
+                // Generate data points for a wider range to ensure the curve is visible even with a smaller chart scale
+                const plotRange = 20; 
                 const step = 0.1;
 
-                for (let x = va - range; x < va; x += step) {
+                for (let x = va - plotRange; x < va; x += step) {
                     data1.push({ x: x, y: (a * x + b) / (c * x + d) });
                 }
-                for (let x = va + step; x < va + range; x += step) {
+                for (let x = va + step; x < va + plotRange; x += step) {
                     data2.push({ x: x, y: (a * x + b) / (c * x + d) });
                 }
                 updateChart(data1, data2, va, ha);
@@ -356,7 +403,7 @@
 
                 if (va !== null) {
                     datasets.push({
-                        label: 'Asíntota Vertical',
+                        label: 'Asintota Vertical',
                         data: [{x: va, y: -1000}, {x: va, y: 1000}],
                         borderColor: '#DC2626',
                         borderWidth: 2,
@@ -367,7 +414,7 @@
                 }
                 if (ha !== null) {
                      datasets.push({
-                        label: 'Asíntota Horizontal',
+                        label: 'Asintota Horizontal',
                         data: [{x: -1000, y: ha}, {x: 1000, y: ha}],
                         borderColor: '#16A34A',
                         borderWidth: 2,
@@ -391,12 +438,38 @@
                                     position: 'bottom',
                                     min: -10,
                                     max: 10,
-                                    grid: { color: '#E5E7EB' }
+                                    grid: { color: '#E5E7EB' },
+                                    borderColor: '#000000',
+                                    borderWidth: 2,
+                                    grid: {
+                                        color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                        // Destacar las lineas de la cuadricula en numeros enteros
+                                        drawOnChartArea: true,
+                                        tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                        tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                    },
+                                    ticks: {
+                                        stepSize: 1, // Mostrar ticks en cada numero entero
+                                    }
                                 },
                                 y: {
                                     min: -10,
                                     max: 10,
-                                    grid: { color: '#E5E7EB' }
+                                    grid: { color: '#E5E7EB' },
+                                    borderColor: '#000000',
+                                    borderWidth: 2,
+                                    grid: {
+                                        color: (context) => context.tick.value === 0 ? '#000000' : '#E5E7EB',
+                                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1,
+                                        // Destacar las lineas de la cuadricula en numeros enteros
+                                        drawOnChartArea: true,
+                                        tickBorderDash: (context) => Number.isInteger(context.tick.value) ? [] : [2, 2],
+                                        tickBorderDashOffset: (context) => Number.isInteger(context.tick.value) ? 0 : 0,
+                                    },
+                                    ticks: {
+                                        stepSize: 1, // Mostrar ticks en cada numero entero
+                                    }
                                 }
                             },
                             plugins: {
@@ -405,7 +478,7 @@
                                     callbacks: {
                                         label: function(context) {
                                             let label = context.dataset.label || '';
-                                            if (label.includes('Asíntota')) return label;
+                                            if (label.includes('Asintota')) return label;
                                             return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
                                         }
                                     }
@@ -414,11 +487,14 @@
                         }
                     });
                 } else {
-                    const xMin = va !== null ? Math.min(va - 10, -10) : -10;
-                    const xMax = va !== null ? Math.max(va + 10, 10) : 10;
-                    const yMin = ha !== null ? Math.min(ha - 10, -10) : -10;
-                    const yMax = ha !== null ? Math.max(ha + 10, 10) : 10;
+                    const currentVA = -parseFloat(params.d.value) / parseFloat(params.c.value);
+                    const currentHA = parseFloat(params.a.value) / parseFloat(params.c.value);
 
+                    let xMin = -10;
+                    let xMax = 10;
+                    let yMin = -10;
+                    let yMax = 10;
+                    
                     chart.data.datasets = datasets;
                     chart.options.scales.x.min = xMin;
                     chart.options.scales.x.max = xMax;
@@ -447,9 +523,9 @@
             // LLM Integration
             simplifyAsymptotesBtn.addEventListener('click', async () => {
                 simplifiedExplanationOutput.classList.remove('hidden');
-                simplifiedExplanationOutput.textContent = 'Generando explicación...';
+                simplifiedExplanationOutput.textContent = 'Generando explicacion...';
 
-                const prompt = "Explica el concepto de asíntotas en funciones racionales de la forma (ax+b)/(cx+d) de una manera muy sencilla y con una analogía, para un adolescente de 15 años. Sé conciso.";
+                const prompt = "Explica el concepto de asintotas en funciones racionales de la forma (ax+b)/(cx+d) de una manera muy sencilla y con una analogia, para un adolescente de 15 anos. Se conciso.";
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
@@ -469,11 +545,11 @@
                         const text = result.candidates[0].content.parts[0].text;
                         simplifiedExplanationOutput.textContent = text;
                     } else {
-                        simplifiedExplanationOutput.textContent = 'Error: No se pudo generar la explicación.';
+                        simplifiedExplanationOutput.textContent = 'Error: No se pudo generar la explicacion.';
                     }
                 } catch (error) {
                     console.error('Error al llamar a la API de Gemini:', error);
-                    simplifiedExplanationOutput.textContent = 'Error de conexión o API. Intenta de nuevo más tarde.';
+                    simplifiedExplanationOutput.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
                 }
             });
 
@@ -486,7 +562,7 @@
                 const c = parseFloat(params.c.value);
                 const d = parseFloat(params.d.value);
 
-                const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una función racional de la forma f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)}). El problema debe ser relevante para un adolescente de 15 años y debe requerir el cálculo de alguna propiedad de la función (como asíntotas o intersecciones). Presenta el problema claramente.`;
+                const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una funcion racional de la forma f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)}). El problema debe ser relevante para un adolescente de 15 anos y debe requerir el calculo de alguna propiedad de la funcion (como asintotas o intersecciones). Presenta el problema claramente.`;
                 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
@@ -511,7 +587,7 @@
                     }
                 } catch (error) {
                     console.error('Error al llamar a la API de Gemini:', error);
-                    generatedProblemOutput.textContent = 'Error de conexión o API. Intenta de nuevo más tarde.';
+                    generatedProblemOutput.textContent = 'Error de conexion o API. Intenta de nuevo mas tarde.';
                 }
             });
 
