@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramienta Interactivo de Funciones Racionales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive learning dashboard. Instead of following the static 5-session structure of the report, it provides a unified "explorer" experience. The core components are: 1) Parameter sliders (a, b, c, d) for hands-on manipulation. 2) A large, dynamic Chart.js graph that visualizes the function and its asymptotes in real-time. 3) A dynamic "Analysis Dashboard" that displays all key properties (asymptotes, domain, range, intercepts) calculated live. 4) A tabbed section for conceptual explanations, allowing students to delve into the "why" behind the calculations at their own pace. This structure transforms a passive lesson plan into an active, discovery-based learning tool, which is more effective for the target audience. -->
+    <!-- Visualization & Content Choices: Report Info: Function parameters, formulas, graphs, and application problems. Goal: Allow students to explore the relationship between parameters and graph properties. Viz/Presentation Method: Interactive sliders control a central Chart.js canvas graph. A dynamic HTML/CSS grid displays calculated properties. Tabbed content sections explain the theory. Interaction: Sliders update all visual and text elements in real-time. Tabs reveal contextual information. Justification: This approach provides immediate visual feedback, reinforcing learning. It separates the "what" (the graph and results) from the "how" (the explanations), reducing cognitive load and encouraging exploration. Library/Method: Chart.js for canvas-based graphing. All other elements are structured HTML with Tailwind CSS and manipulated with vanilla JavaScript. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-color: #F97316;
+            background-color: #FFF7ED;
+            color: #F97316;
+            font-weight: 500;
+        }
+        .slider-label {
+            min-width: 100px;
+        }
+        .param-value {
+            min-width: 40px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 45vh;
+            max-height: 500px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-orange-600">Explorador de Funciones Racionales</h1>
+            <p class="mt-2 text-lg text-gray-600">Una herramienta interactiva para visualizar $f(x) = \frac{ax+b}{cx+d}$</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                <div class="chart-container mx-auto">
+                    <canvas id="rationalFunctionChart"></canvas>
+                </div>
+            </div>
+
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Parámetros</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <label for="paramA" class="slider-label font-medium text-gray-700">Parámetro 'a':</label>
+                            <input type="range" id="paramA" min="-10" max="10" value="2" step="1" class="w-full">
+                            <span id="paramAValue" class="param-value font-mono text-orange-600">2</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label for="paramB" class="slider-label font-medium text-gray-700">Parámetro 'b':</label>
+                            <input type="range" id="paramB" min="-10" max="10" value="3" step="1" class="w-full">
+                            <span id="paramBValue" class="param-value font-mono text-orange-600">3</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label for="paramC" class="slider-label font-medium text-gray-700">Parámetro 'c':</label>
+                            <input type="range" id="paramC" min="-10" max="10" value="1" step="1" class="w-full">
+                            <span id="paramCValue" class="param-value font-mono text-orange-600">1</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label for="paramD" class="slider-label font-medium text-gray-700">Parámetro 'd':</label>
+                            <input type="range" id="paramD" min="-10" max="10" value="-4" step="1" class="w-full">
+                            <span id="paramDValue" class="param-value font-mono text-orange-600">-4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Análisis de la Función</h2>
+                    <div id="analysis-dashboard" class="space-y-3 text-gray-700">
+                        <p><strong>Función:</strong> <span id="functionDisplay" class="font-mono text-blue-600"></span></p>
+                        <p><strong>Dominio:</strong> <span id="domainDisplay" class="font-mono text-blue-600"></span></p>
+                        <p><strong>Rango:</strong> <span id="rangeDisplay" class="font-mono text-blue-600"></span></p>
+                        <p><strong>Asíntota Vertical:</strong> <span id="verticalAsymptoteDisplay" class="font-mono text-red-600"></span></p>
+                        <p><strong>Asíntota Horizontal:</strong> <span id="horizontalAsymptoteDisplay" class="font-mono text-green-600"></span></p>
+                        <p><strong>Intersección Eje Y:</strong> <span id="yInterceptDisplay" class="font-mono text-purple-600"></span></p>
+                        <p><strong>Intersección Eje X:</strong> <span id="xInterceptDisplay" class="font-mono text-purple-600"></span></p>
+                        <div id="specialCase" class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg hidden"></div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <section class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Conceptos Clave</h2>
+            <div class="border-b border-gray-200">
+                <nav class="flex flex-wrap -mb-px justify-center" id="tabs">
+                    <button data-target="tab-asymptotes" class="tab-button active text-lg py-4 px-6 border-b-2 font-medium">Asíntotas</button>
+                    <button data-target="tab-domain-range" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Dominio y Rango</button>
+                    <button data-target="tab-intercepts" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Intersecciones</button>
+                    <button data-target="tab-application" class="tab-button text-lg py-4 px-6 border-b-2 border-transparent">Aplicación Real</button>
+                </nav>
+            </div>
+            <div id="tab-content" class="pt-6">
+                <div id="tab-asymptotes" class="tab-pane space-y-4">
+                    <p>Las asíntotas son líneas a las que la gráfica de la función se acerca indefinidamente pero nunca las cruza (en este tipo de función).</p>
+                    <div>
+                        <h3 class="text-xl font-semibold text-red-600">Asíntota Vertical</h3>
+                        <p>Ocurre donde el denominador es igual a cero, ya que la división por cero no está definida. Para encontrarla, resolvemos la ecuación $cx + d = 0$.</p>
+                        <p class="p-3 bg-red-50 rounded-md mt-2">Cálculo: <span id="va-calc" class="font-mono"></span></p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-green-600">Asíntota Horizontal</h3>
+                        <p>Describe el comportamiento de la función cuando $x$ se vuelve muy grande (positivo o negativo). Se encuentra dividiendo los coeficientes de $x$ del numerador y denominador.</p>
+                        <p class="p-3 bg-green-50 rounded-md mt-2">Cálculo: <span id="ha-calc" class="font-mono"></span></p>
+                    </div>
+                    <button id="simplifyAsymptotes" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">? Explicación Simplificada</button>
+                    <div id="simplifiedExplanationOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                </div>
+                <div id="tab-domain-range" class="tab-pane hidden space-y-4">
+                    <div>
+                        <h3 class="text-xl font-semibold text-blue-600">Dominio</h3>
+                        <p>El dominio es el conjunto de todos los valores de $x$ para los cuales la función está definida. En una función racional, esto incluye todos los números reales excepto el valor de $x$ que corresponde a la asíntota vertical.</p>
+                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusión: <span id="domain-exclusion" class="font-mono"></span></p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-blue-600">Rango</h3>
+                        <p>El rango es el conjunto de todos los valores posibles de $y$. Para esta forma de función racional, incluye todos los números reales excepto el valor de $y$ que corresponde a la asíntota horizontal.</p>
+                        <p class="p-3 bg-blue-50 rounded-md mt-2">Exclusión: <span id="range-exclusion" class="font-mono"></span></p>
+                    </div>
+                </div>
+                <div id="tab-intercepts" class="tab-pane hidden space-y-4">
+                     <div>
+                        <h3 class="text-xl font-semibold text-purple-600">Intersección con el Eje Y</h3>
+                        <p>Es el punto donde la gráfica cruza el eje vertical. Se encuentra evaluando la función en $x=0$.</p>
+                        <p class="p-3 bg-purple-50 rounded-md mt-2">Cálculo: <span id="y-int-calc" class="font-mono"></span></p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-purple-600">Intersección con el Eje X (Raíz)</h3>
+                        <p>Es el punto donde la gráfica cruza el eje horizontal. Se encuentra igualando el numerador a cero y resolviendo para $x$, ya que una fracción es cero solo si su numerador es cero.</p>
+                        <p class="p-3 bg-purple-50 rounded-md mt-2">Cálculo: <span id="x-int-calc" class="font-mono"></span></p>
+                    </div>
+                </div>
+                <div id="tab-application" class="tab-pane hidden space-y-4">
+                    <h3 class="text-xl font-semibold">Ejemplo: Costo Promedio de Producción</h3>
+                    <p>Imagina una fábrica con un costo fijo de $1000 (b) y un costo de producción por unidad de $5 (a). La función de costo promedio por unidad $x$ (donde $c=1, d=0$) sería:</p>
+                    <p class="text-center text-2xl my-4 font-mono">$C(x) = \frac{5x + 1000}{x}$</p>
+                    <p>La <strong>asíntota horizontal</strong> de esta función es $y = 5/1 = 5$.</p>
+                    <p><strong>Interpretación:</strong> A medida que la fábrica produce más y más unidades (cuando $x$ tiende a infinito), el costo fijo de $1000 se distribuye entre tantas unidades que su impacto se vuelve insignificante. El costo promedio por unidad se acerca cada vez más al costo de producción por unidad, que es $5. Nunca será exactamente $5, pero se aproxima a ese valor. La asíntota horizontal representa este límite o "costo mínimo teórico a largo plazo".</p>
+                    <button id="generateProblem" class="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 transition-colors">? Generar Problema</button>
+                    <div id="generatedProblemOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700 hidden"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('rationalFunctionChart').getContext('2d');
+            let chart;
+
+            const params = {
+                a: document.getElementById('paramA'),
+                b: document.getElementById('paramB'),
+                c: document.getElementById('paramC'),
+                d: document.getElementById('paramD'),
+            };
+
+            const values = {
+                a: document.getElementById('paramAValue'),
+                b: document.getElementById('paramBValue'),
+                c: document.getElementById('paramCValue'),
+                d: document.getElementById('paramDValue'),
+            };
+
+            const displays = {
+                function: document.getElementById('functionDisplay'),
+                domain: document.getElementById('domainDisplay'),
+                range: document.getElementById('rangeDisplay'),
+                verticalAsymptote: document.getElementById('verticalAsymptoteDisplay'),
+                horizontalAsymptote: document.getElementById('horizontalAsymptoteDisplay'),
+                yIntercept: document.getElementById('yInterceptDisplay'),
+                xIntercept: document.getElementById('xInterceptDisplay'),
+                specialCase: document.getElementById('specialCase'),
+            };
+            
+            const calcs = {
+                va: document.getElementById('va-calc'),
+                ha: document.getElementById('ha-calc'),
+                domainExclusion: document.getElementById('domain-exclusion'),
+                rangeExclusion: document.getElementById('range-exclusion'),
+                yInt: document.getElementById('y-int-calc'),
+                xInt: document.getElementById('x-int-calc'),
+            };
+
+            const simplifyAsymptotesBtn = document.getElementById('simplifyAsymptotes');
+            const simplifiedExplanationOutput = document.getElementById('simplifiedExplanationOutput');
+            const generateProblemBtn = document.getElementById('generateProblem');
+            const generatedProblemOutput = document.getElementById('generatedProblemOutput');
+
+            function formatNumber(num) {
+                if (Number.isInteger(num)) return num.toString();
+                return num.toFixed(2).replace(/\.00$/, '');
+            }
+            
+            function formatSign(num) {
+                return num < 0 ? `- ${-num}` : `+ ${-num}`;
+            }
+
+            function updateApplication() {
+                const a = parseFloat(params.a.value);
+                const b = parseFloat(params.b.value);
+                const c = parseFloat(params.c.value);
+                const d = parseFloat(params.d.value);
+
+                values.a.textContent = a;
+                values.b.textContent = b;
+                values.c.textContent = c;
+                values.d.textContent = d;
+
+                displays.specialCase.classList.add('hidden');
+                
+                let functionStr = `f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)})`;
+                displays.function.textContent = functionStr;
+
+                if (c === 0) {
+                    handleLinearCase(a, b, d);
+                    return;
+                }
+                
+                handleRationalCase(a,b,c,d);
+            }
+            
+            function handleLinearCase(a, b, d) {
+                if (d === 0) {
+                    displays.specialCase.textContent = "Caso Indefinido: c=0 y d=0. El denominador es cero para todo x.";
+                    displays.specialCase.classList.remove('hidden');
+                    clearDisplays();
+                    updateChart([], [], null, null);
+                    return;
+                }
+                
+                displays.specialCase.textContent = `Con c=0, la función es lineal: f(x) = (${formatNumber(a/d)})x ${formatSign(b/d)}`;
+                displays.specialCase.classList.remove('hidden');
+                
+                displays.domain.textContent = 'x ? R';
+                displays.range.textContent = 'y ? R';
+                displays.verticalAsymptote.textContent = 'No tiene';
+                displays.horizontalAsymptote.textContent = 'No tiene';
+                
+                const yInt = b / d;
+                displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
+                
+                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b?0)';
+                displays.xIntercept.textContent = a === 0 ? xInt : `(${formatNumber(xInt)}, 0)`;
+                
+                calcs.va.textContent = 'No aplica (c=0).';
+                calcs.ha.textContent = 'No aplica (c=0).';
+                calcs.domainExclusion.textContent = 'No hay exclusiones.';
+                calcs.rangeExclusion.textContent = 'No hay exclusiones.';
+                calcs.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${d} ) = ${formatNumber(yInt)}`;
+                calcs.xInt.textContent = a !== 0 ? `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}` : 'El numerador nunca es cero.';
+
+                const linearData = [];
+                for (let x = -20; x <= 20; x += 0.5) {
+                    linearData.push({x: x, y: (a * x + b) / d});
+                }
+                updateChart(linearData, [], null, null);
+            }
+
+            function handleRationalCase(a, b, c, d) {
+                const va = -d / c;
+                const ha = a / c;
+
+                displays.domain.textContent = `x ? R, x ? ${formatNumber(va)}`;
+                displays.range.textContent = `y ? R, y ? ${formatNumber(ha)}`;
+                displays.verticalAsymptote.textContent = `x = ${formatNumber(va)}`;
+                displays.horizontalAsymptote.textContent = `y = ${formatNumber(ha)}`;
+                
+                calcs.va.textContent = `${c}x ${formatSign(d)} = 0  =>  x = ${formatNumber(va)}`;
+                calcs.ha.textContent = `y = a/c = ${a}/${c} = ${formatNumber(ha)}`;
+                calcs.domainExclusion.textContent = `El valor x = ${formatNumber(va)} está excluido.`;
+                calcs.rangeExclusion.textContent = `El valor y = ${formatNumber(ha)} está excluido.`;
+
+                const yInt = b / d;
+                if (d !== 0) {
+                    displays.yIntercept.textContent = `(0, ${formatNumber(yInt)})`;
+                    calcs.yInt.textContent = `f(0) = ( ${a}(0) ${formatSign(b)} ) / ( ${c}(0) ${formatSign(d)} ) = ${formatNumber(yInt)}`;
+                } else {
+                    displays.yIntercept.textContent = 'No tiene (en la asíntota)';
+                    calcs.yInt.textContent = 'x=0 es la asíntota vertical.';
+                }
+
+                const xInt = a !== 0 ? -b / a : 'No tiene (si a=0, b?0)';
+                if (a !== 0) {
+                    displays.xIntercept.textContent = `(${formatNumber(xInt)}, 0)`;
+                    calcs.xInt.textContent = `${a}x ${formatSign(b)} = 0 => x = ${formatNumber(xInt)}`;
+                } else {
+                    displays.xIntercept.textContent = 'No tiene (si a=0, b?0)';
+                    calcs.xInt.textContent = 'El numerador nunca es cero (a=0 y b?0).';
+                }
+
+                const data1 = [];
+                const data2 = [];
+                const range = 20;
+                const step = 0.1;
+
+                for (let x = va - range; x < va; x += step) {
+                    data1.push({ x: x, y: (a * x + b) / (c * x + d) });
+                }
+                for (let x = va + step; x < va + range; x += step) {
+                    data2.push({ x: x, y: (a * x + b) / (c * x + d) });
+                }
+                updateChart(data1, data2, va, ha);
+            }
+
+            function clearDisplays() {
+                Object.values(displays).forEach(el => { if(el.id !== 'specialCase') el.textContent = 'N/A'; });
+                Object.values(calcs).forEach(el => el.textContent = 'No aplicable.');
+            }
+
+            function updateChart(data1, data2, va, ha) {
+                const datasets = [
+                    {
+                        label: 'f(x)',
+                        data: data1,
+                        borderColor: '#F97316',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'f(x)',
+                        data: data2,
+                        borderColor: '#F97316',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }
+                ];
+
+                if (va !== null) {
+                    datasets.push({
+                        label: 'Asíntota Vertical',
+                        data: [{x: va, y: -1000}, {x: va, y: 1000}],
+                        borderColor: '#DC2626',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    });
+                }
+                if (ha !== null) {
+                     datasets.push({
+                        label: 'Asíntota Horizontal',
+                        data: [{x: -1000, y: ha}, {x: 1000, y: ha}],
+                        borderColor: '#16A34A',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    });
+                }
+
+                if (!chart) {
+                    chart = new Chart(ctx, {
+                        type: 'scatter',
+                        data: { datasets: datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            showLine: true,
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    min: -10,
+                                    max: 10,
+                                    grid: { color: '#E5E7EB' }
+                                },
+                                y: {
+                                    min: -10,
+                                    max: 10,
+                                    grid: { color: '#E5E7EB' }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label.includes('Asíntota')) return label;
+                                            return `( ${formatNumber(context.parsed.x)}, ${formatNumber(context.parsed.y)} )`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    const xMin = va !== null ? Math.min(va - 10, -10) : -10;
+                    const xMax = va !== null ? Math.max(va + 10, 10) : 10;
+                    const yMin = ha !== null ? Math.min(ha - 10, -10) : -10;
+                    const yMax = ha !== null ? Math.max(ha + 10, 10) : 10;
+
+                    chart.data.datasets = datasets;
+                    chart.options.scales.x.min = xMin;
+                    chart.options.scales.x.max = xMax;
+                    chart.options.scales.y.min = yMin;
+                    chart.options.scales.y.max = yMax;
+                    chart.update();
+                }
+            }
+
+            Object.values(params).forEach(param => {
+                param.addEventListener('input', updateApplication);
+            });
+            
+            const tabs = document.getElementById('tabs');
+            const tabPanes = document.querySelectorAll('#tab-content .tab-pane');
+            tabs.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    tabs.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    
+                    tabPanes.forEach(pane => pane.classList.add('hidden'));
+                    document.getElementById(e.target.dataset.target).classList.remove('hidden');
+                }
+            });
+
+            // LLM Integration
+            simplifyAsymptotesBtn.addEventListener('click', async () => {
+                simplifiedExplanationOutput.classList.remove('hidden');
+                simplifiedExplanationOutput.textContent = 'Generando explicación...';
+
+                const prompt = "Explica el concepto de asíntotas en funciones racionales de la forma (ax+b)/(cx+d) de una manera muy sencilla y con una analogía, para un adolescente de 15 años. Sé conciso.";
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        simplifiedExplanationOutput.textContent = text;
+                    } else {
+                        simplifiedExplanationOutput.textContent = 'Error: No se pudo generar la explicación.';
+                    }
+                } catch (error) {
+                    console.error('Error al llamar a la API de Gemini:', error);
+                    simplifiedExplanationOutput.textContent = 'Error de conexión o API. Intenta de nuevo más tarde.';
+                }
+            });
+
+            generateProblemBtn.addEventListener('click', async () => {
+                generatedProblemOutput.classList.remove('hidden');
+                generatedProblemOutput.textContent = 'Generando problema...';
+
+                const a = parseFloat(params.a.value);
+                const b = parseFloat(params.b.value);
+                const c = parseFloat(params.c.value);
+                const d = parseFloat(params.d.value);
+
+                const problemPrompt = `Crea un problema de la vida real que pueda ser modelado por una función racional de la forma f(x) = (${a}x ${formatSign(b)}) / (${c}x ${formatSign(d)}). El problema debe ser relevante para un adolescente de 15 años y debe requerir el cálculo de alguna propiedad de la función (como asíntotas o intersecciones). Presenta el problema claramente.`;
+                
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: problemPrompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        generatedProblemOutput.textContent = text;
+                    } else {
+                        generatedProblemOutput.textContent = 'Error: No se pudo generar el problema.';
+                    }
+                } catch (error) {
+                    console.error('Error al llamar a la API de Gemini:', error);
+                    generatedProblemOutput.textContent = 'Error de conexión o API. Intenta de nuevo más tarde.';
+                }
+            });
+
+            updateApplication();
+        });
+    </script>
+</body>
+</html>
